@@ -27,6 +27,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+         if ($this->app->environment('production')) {
+            URL::forceScheme('https');
+        }
         try {
             $timezone = BusinessSetting::where(['key' => 'time_zone'])->first();
             if (isset($timezone)) {

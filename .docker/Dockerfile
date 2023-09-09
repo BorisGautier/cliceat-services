@@ -30,13 +30,6 @@ RUN apt-get update && apt-get install -y \
     && docker-php-ext-install exif \
     && docker-php-ext-install zip \
     && docker-php-ext-install bcmath \
-    && docker-php-ext-install json \
-    && docker-php-ext-install pdo \
-    && docker-php-ext-install mbstring \
-    && docker-php-ext-install tokenizer \
-    && docker-php-ext-install ctype \
-    && docker-php-ext-install xml \
-    && docker-php-ext-install fileinfo \
     && docker-php-source delete
 
 RUN apt-get install -y apache2

@@ -1,26 +1,26 @@
 version: "3"
 services:
-    clieat-services:
+    cliceat-services:
         build:
             context: .
             dockerfile: .docker/Dockerfile
-        image: clieat-services
-        container_name: clieat-services
+        image: cliceat-services
+        container_name: cliceat-services
         ports:
             - "8500:80"
         volumes:
             - ./:/var/www/html
             - ./docker/uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
         networks:
-            - clieat-services
+            - cliceat-services
         depends_on:
-            - clieat-services-mysql
+            - cliceat-services-mysql
 
-    clieat-services-mysql:
+    cliceat-services-mysql:
         restart: always
         image: mysql:5.7
         environment:
-          MYSQL_DATABASE: 'clieat'
+          MYSQL_DATABASE: 'cliceat'
       # So you don't have to use root, but you can if you like
           MYSQL_USER: 'root'
       # You can use whatever password you like
@@ -38,7 +38,7 @@ services:
           - my-db:/var/lib/mysql
 
 networks:
-    clieat-services:
+    cliceat-services:
         driver: bridge
 volumes:
     my-db:

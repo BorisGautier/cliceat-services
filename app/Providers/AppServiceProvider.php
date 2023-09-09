@@ -28,7 +28,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-         if ($this->app->environment('live')) {
+         if ($this->app->environment('live') || $this->app->environment('local')) {
             URL::forceScheme('https');
         }
         try {

@@ -35,10 +35,11 @@ services:
           - '3306'
       # Where our data will be persisted
         volumes:
-          - my-db:/var/lib/mysql
+          - cliceat-database:/var/lib/mysql
 
 networks:
     cliceat-services:
         driver: bridge
 volumes:
-    my-db:
+    cliceat-database:
+        driver: local

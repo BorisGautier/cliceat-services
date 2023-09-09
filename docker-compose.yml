@@ -17,7 +17,6 @@ services:
             - cliceat-services-mysql
 
     cliceat-services-mysql:
-        restart: always
         image: mysql:8.0
         cap_add:
             - SYS_NICE

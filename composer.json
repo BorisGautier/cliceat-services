@@ -1,0 +1,99 @@
+{
+    "name": "laravel/laravel",
+    "type": "project",
+    "description": "The Laravel Framework.",
+    "keywords": ["framework", "laravel"],
+    "license": "MIT",
+    "require": {
+        "php": "^8.0.2",
+        "guzzlehttp/guzzle": "^7.2",
+        "laravel/framework": "^9.19",
+        "laravel/sanctum": "^3.0",
+        "laravel/tinker": "^2.7",
+
+        "ext-curl": "*",
+        "ext-json": "*",
+        "barryvdh/laravel-dompdf": "*",
+        "brian2694/laravel-toastr": "^5.54",
+        "dgvai/laravel-sslcommerz": "^1.0",
+        "doctrine/dbal": "^2.0",
+        "fideloper/proxy": "^4.2",
+        "fruitcake/laravel-cors": "^2.0",
+        "gregwar/captcha": "^1.1",
+        "intervention/image": "^2.5",
+        "kingflamez/laravelrave": "*",
+        "laravel/passport": "~10.0",
+        "laravel/ui": "^3.0",
+        "lcobucci/jwt": "^4.1",
+        "madnest/madzipper": "^1.1",
+        "mercadopago/dx-php": "2.4.2",
+        "paypal/rest-api-sdk-php": "^1.14",
+        "rap2hpoutre/fast-excel": "^3.0",
+        "razorpay/razorpay": "^2.5",
+        "stripe/stripe-php": "^7.61",
+        "twilio/sdk": "^6.28",
+        "unicodeveloper/laravel-paystack": "^1.0"
+    },
+    "require-dev": {
+        "barryvdh/laravel-debugbar": "^3.5",
+        "fakerphp/faker": "*",
+        "laracademy/generators": "*",
+        "laravel/pint": "^1.0",
+        "laravel/sail": "^1.0.1",
+        "mockery/mockery": "^1.4.4",
+        "nunomaduro/collision": "^6.1",
+        "phpunit/phpunit": "^9.5.10",
+        "spatie/laravel-ignition": "^1.0"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "preferred-install": "dist",
+        "sort-packages": true,
+        "allow-plugins": {
+            "composer/package-versions-deprecated": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "dont-discover": []
+        }
+    },
+    "autoload": {
+        "files": [
+            "app/CentralLogics/banner.php",
+            "app/CentralLogics/category.php",
+            "app/CentralLogics/product.php",
+            "app/CentralLogics/helpers.php",
+            "app/CentralLogics/order.php",
+            "app/CentralLogics/sms_module.php",
+            "app/CentralLogics/Translation.php",
+            "app/CentralLogics/Constants.php"
+        ],
+        "psr-4": {
+            "App\\": "app/"
+        },
+        "classmap": [
+            "database/seeds",
+            "database/factories"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
+        }
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "scripts": {
+        "post-autoload-dump": [
+            "Illuminate\\Foundation\\ComposerScripts::postAutoloadDump",
+            "@php artisan package:discover --ansi"
+        ],
+        "post-root-package-install": [
+            "@php -r \"file_exists('.env') || copy('.env.example', '.env');\""
+        ],
+        "post-create-project-cmd": [
+            "@php artisan key:generate --ansi"
+        ]
+    }
+}

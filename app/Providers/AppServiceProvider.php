@@ -5,6 +5,7 @@ namespace App\Providers;
 use App\Model\BusinessSetting;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Pagination\Paginator;
+use Illuminate\Support\Facades\URL;
 
 ini_set('memory_limit', '-1');
 

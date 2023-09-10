@@ -41,7 +41,7 @@ class StripePaymentController extends Controller
                     'unit_amount' => in_array($currency_code, $currencies_not_supported_cents) ? (int)$order_amount : ($order_amount * 100),
                     'product_data' => [
                         'name' => BusinessSetting::where(['key' => 'restaurant_name'])->first()->value,
-                        'images' => [asset('storage/app/public/restaurant') . '/' . BusinessSetting::where(['key' => 'logo'])->first()->value],
+                        'images' => [asset('storage/restaurant') . '/' . BusinessSetting::where(['key' => 'logo'])->first()->value],
                     ],
                 ],
                 'quantity' => 1,

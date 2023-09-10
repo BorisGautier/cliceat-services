@@ -79,7 +79,7 @@
                                             <div class="upload-file">
                                                 <input type="file" name="image" accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*" class="upload-file__input">
                                                 <div class="upload-file__img_drag upload-file__img">
-                                                    <img width="465" src="{{asset('storage/app/public/banner')}}/{{$banner['image']}}" onerror="this.src='{{asset('assets/admin/img/icons/upload_img2.png')}}'" alt="">
+                                                    <img width="465" src="{{asset('storage/banner')}}/{{$banner['image']}}" onerror="this.src='{{asset('assets/admin/img/icons/upload_img2.png')}}'" alt="">
                                                 </div>
                                             </div>
                                         </div>

@@ -31,7 +31,7 @@
                     <div class="col-md-5 d-flex justify-content-center">
                         <div class="d-flex align-items-center">
                             <img class="avatar avatar-xxl avatar-4by3 mr-4"
-                                 src="{{asset('storage/app/public/product')}}/{{$product['image']}}"
+                                 src="{{asset('storage/product')}}/{{$product['image']}}"
                                  onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'"
                                  alt="Image Description">
                             <div class="d-block">
@@ -265,9 +265,9 @@
                                         <img class="avatar-img" width="75" height="75"
                                              onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
                                              @if(isset($review->customer))
-                                             src="{{asset('storage/app/public/profile/'.$review->customer->image??'')}}"
+                                             src="{{asset('storage/profile/'.$review->customer->image??'')}}"
                                              @else
-                                             src="{{asset('storage/app/public/profile/')}}"
+                                             src="{{asset('storage/profile/')}}"
                                              @endif
                                              alt="Image Description">
                                     </div>

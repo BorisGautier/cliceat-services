@@ -748,7 +748,7 @@
                                         <div class="text-center mt-3">
                                             <img style="height: 100px;border: 1px solid; border-radius: 10px;" id="viewer"
                                                  onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'"
-                                                 src="{{asset('storage/app/public/restaurant/'.$logo)}}" alt="logo image"/>
+                                                 src="{{asset('storage/restaurant/'.$logo)}}" alt="logo image"/>
                                         </div>
                                     </div>
                                 </div>
@@ -767,7 +767,7 @@
                                         <div class="text-center mt-3">
                                             <img style="height: 100px;border: 1px solid; border-radius: 10px;" id="viewer_2"
                                                  onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'"
-                                                 src="{{asset('storage/app/public/restaurant/'.$fav_icon)}}" alt="fav"/>
+                                                 src="{{asset('storage/restaurant/'.$fav_icon)}}" alt="fav"/>
                                         </div>
                                     </div>
                                 </div>

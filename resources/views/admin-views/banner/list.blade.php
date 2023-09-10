@@ -139,7 +139,7 @@
                                     <tr>
                                         <td>{{$banners->firstitem()+$key}}</td>
                                         <td>
-                                            <img class="img-vertical-150" src="{{asset('storage/app/public/banner')}}/{{$banner['image']}}"
+                                            <img class="img-vertical-150" src="{{asset('storage/banner')}}/{{$banner['image']}}"
                                                 onerror="this.src='{{asset('assets/admin/img/900x400/img1.jpg')}}'">
                                         </td>
                                         <td>

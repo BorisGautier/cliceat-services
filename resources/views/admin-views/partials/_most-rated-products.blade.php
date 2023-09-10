@@ -14,7 +14,7 @@
                 <a class="grid-item text-dark" href='{{route('admin.product.view',[$item['product_id']])}}'>
                     <div class="d-flex align-items-center gap-2">
                         <img class="rounded avatar"
-                                src="{{asset('storage/app/public/product')}}/{{ $item->product->image ?? '' }}"
+                                src="{{asset('storage/product')}}/{{ $item->product->image ?? '' }}"
                                 onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'"
                                 alt="{{$product->name}} image">
                         <span class=" font-weight-semibold text-capitalize media-body">

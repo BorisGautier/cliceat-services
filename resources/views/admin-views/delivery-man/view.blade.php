@@ -33,7 +33,7 @@
                             <div class="avatar avatar-xxl mr-4">
                                 <img class="img-fit"
                                 onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
-                                src="{{asset('storage/app/public/delivery-man')}}/{{$dm['image']}}"
+                                src="{{asset('storage/delivery-man')}}/{{$dm['image']}}"
                                 alt="Image Description">
                             </div>
                             <div class="d-block">
@@ -167,7 +167,7 @@
                                         <div class="avatar avatar-circle">
                                             <img class="avatar-img" width="75" height="75"
                                                  onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
-                                                 src="{{asset('storage/app/public/profile/'.$review->customer->image)}}"
+                                                 src="{{asset('storage/profile/'.$review->customer->image)}}"
                                                  alt="Image Description">
                                         </div>
                                         <div class="ml-3">
@@ -207,7 +207,7 @@
                             </td>
                             {{-- <td>
                                 @foreach(json_decode($review['attachment'],true) as $attachment)
-                                    <img width="100" onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'" src="{{asset('storage/app/public')}}/{{$attachment}}">
+                                    <img width="100" onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'" src="{{asset('storage')}}/{{$attachment}}">
                                 @endforeach
                             </td> --}}
                             <td>

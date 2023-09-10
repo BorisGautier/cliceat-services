@@ -85,7 +85,7 @@
                                                 <div class="avatar">
                                                     <img width="60" class="img-fit rounded-circle"
                                                         onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
-                                                        src="{{asset('storage/app/public/delivery-man')}}/{{$dm['image']}}">
+                                                        src="{{asset('storage/delivery-man')}}/{{$dm['image']}}">
                                                     {{--<span class="d-block font-size-sm">{{$banner['image']}}</span>--}}
                                                 </div>
                                                 <div class="media-body">

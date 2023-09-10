@@ -66,7 +66,7 @@
                                                 <div class="upload-file__img_drag upload-file__img">
                                                     <img width="150"
                                                          onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'"
-                                                         src="{{asset('storage/app/public/branch')}}/{{$branch['image']}}" alt="">
+                                                         src="{{asset('storage/branch')}}/{{$branch['image']}}" alt="">
                                                 </div>
                                             </div>
                                         </div>
@@ -118,7 +118,7 @@
                                                 <div class="upload-file__img_drag upload-file__img">
                                                     <img width="150"
                                                          onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'"
-                                                         src="{{asset('storage/app/public/branch')}}/{{$branch['cover_image']}}" alt="">
+                                                         src="{{asset('storage/branch')}}/{{$branch['cover_image']}}" alt="">
                                                 </div>
                                             </div>
                                         </div>

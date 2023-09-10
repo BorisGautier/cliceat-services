@@ -158,7 +158,7 @@
                                     <img
                                         class="img-fit rounded-circle"
                                         onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
-                                        src="{{asset('storage/app/public/profile/'.$customer->image)}}"
+                                        src="{{asset('storage/profile/'.$customer->image)}}"
                                         alt="Image Description">
                                 </div>
                                 <div class="media-body d-flex flex-column gap-1">

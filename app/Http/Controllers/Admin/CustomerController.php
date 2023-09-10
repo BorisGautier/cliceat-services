@@ -279,7 +279,7 @@ class CustomerController extends Controller
             'f_name' => $user->f_name ?? '',
             'l_name' => $user->l_name ?? '',
             'email' => $user->email ?? '',
-            'image' => ($user && $user->image) ? asset('storage/app/public/profile') . '/' . $user->image : asset('/assets/admin/img/160x160/img1.jpg'),
+            'image' => ($user && $user->image) ? asset('storage/profile') . '/' . $user->image : asset('/assets/admin/img/160x160/img1.jpg'),
             'cm_firebase_token' => $user->cm_firebase_token ?? '',
             'unchecked' => $unchecked ?? 0
 
@@ -329,7 +329,7 @@ class CustomerController extends Controller
         if (!empty($request->file('images'))) {
             foreach ($request->images as $img) {
                 $image = Helpers::upload('conversation/', 'png', $img);
-                $image_url = asset('storage/app/public/conversation') . '/' . $image;
+                $image_url = asset('storage/conversation') . '/' . $image;
                 $id_img_names[] = $image_url;
             }
             $images = $id_img_names;

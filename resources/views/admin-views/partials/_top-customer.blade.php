@@ -14,7 +14,7 @@
                     <div class="media align-items-center gap-3">
                         <img class="rounded avatar avatar-lg"
                                 onerror="this.src='{{asset('assets/admin/img/400x400/img2.jpg')}}'"
-                                src="{{asset('storage/app/public/profile'.'/'. $item->customer->image  ?? '' )}}">
+                                src="{{asset('storage/profile'.'/'. $item->customer->image  ?? '' )}}">
                         <div class="media-body d-flex flex-column" style="margin-right: 60px">
                             <span class="font-weight-semibold text-capitalize">{{$item->customer['f_name']??'Not exist'}}</span>
                             <span class="text-dark">{{ $item->customer['phone']?? translate('Not exist') }}</span>

@@ -69,7 +69,7 @@
                                     <div class="media align-items-center gap-3 px-3">
                                         <img width="50" class="rounded"
                                                 onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
-                                                src="{{asset('storage/app/public/branch')}}/{{$branch['image']}}">
+                                                src="{{asset('storage/branch')}}/{{$branch['image']}}">
                                         <div class="media-body d-flex align-items-center flex-wrap">
                                             <span> {{$branch['name']}}</span>
                                             @if($branch['id']==1)

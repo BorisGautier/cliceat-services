@@ -84,7 +84,7 @@
                                             {{$promotion['promotion_name']}}
                                         @else
                                             <div style="height: 100px; width: 100px; overflow-x: hidden;overflow-y: hidden">
-                                                <img src="{{asset('storage/app/public/promotion')}}/{{$promotion['promotion_name']}}" style="width: 100px">
+                                                <img src="{{asset('storage/promotion')}}/{{$promotion['promotion_name']}}" style="width: 100px">
                                             </div>
                                         @endif
                                     </td>

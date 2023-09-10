@@ -63,7 +63,7 @@
                                     <div class="media align-items-center gap-10">
                                         <div class="avatar avatar-sm avatar-circle">
                                             <img class="img-fit rounded-circle"
-                                                src="{{asset('storage/app/public/profile/'.$user['image'])}}"
+                                                src="{{asset('storage/profile/'.$user['image'])}}"
                                                 onerror="this.src='{{asset('assets/admin')}}/img/160x160/img1.jpg'"
                                                 alt="Image Description">
                                         </div>

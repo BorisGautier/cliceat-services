@@ -60,7 +60,7 @@
                                                 <div class="form-group">
                                                     <div class="text-center">
                                                         <img width="105" class="rounded-10 border" id="viewer"
-                                                            src="{{asset('storage/app/public/promotion')}}/{{$promotion['promotion_name']}}" alt="image" />
+                                                            src="{{asset('storage/promotion')}}/{{$promotion['promotion_name']}}" alt="image" />
                                                     </div>
                                                 </div>
                                             </div>

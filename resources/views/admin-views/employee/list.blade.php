@@ -79,7 +79,7 @@
                                     <td class="text-capitalize">
                                         <div class="media align-items-center gap-3">
                                             <div class="avatar">
-                                                <img class="img-fit rounded-circle" src="{{asset('storage/app/public/admin')}}/{{$e['image']}}" alt=""
+                                                <img class="img-fit rounded-circle" src="{{asset('storage/admin')}}/{{$e['image']}}" alt=""
                                                      onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
                                                 >
                                             </div>

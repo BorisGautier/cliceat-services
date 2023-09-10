@@ -97,7 +97,7 @@
                                                 data-buttontext="Pay {{$order_amount}} {{\App\CentralLogics\Helpers::currency_code()}}"
                                                 data-name="{{\App\Model\BusinessSetting::where(['key'=>'restaurant_name'])->first()->value}}"
                                                 data-description="{{$order_amount}}"
-                                                data-image="{{asset('storage/app/public/restaurant/'.\App\Model\BusinessSetting::where(['key'=>'logo'])->first()->value)}}"
+                                                data-image="{{asset('storage/restaurant/'.\App\Model\BusinessSetting::where(['key'=>'logo'])->first()->value)}}"
                                                 data-prefill.name="{{$customer->f_name}}"
                                                 data-prefill.email="{{$customer->email}}"
                                                 data-theme.color="#ff7529">

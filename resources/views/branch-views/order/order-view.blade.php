@@ -198,7 +198,7 @@
                                         <div class="media gap-3 w-max-content">
 
                                             <img class="img-fluid avatar avatar-lg"
-                                                 src="{{asset('storage/app/public/product/')}}/{{$detail->product?->image}}"
+                                                 src="{{asset('storage/product/')}}/{{$detail->product?->image}}"
                                                  onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'"
                                                  alt="Image Description">
 
@@ -456,7 +456,7 @@
                                         </h4>
                                         <div class="media flex-wrap gap-3">
                                             <a class="">
-                                                <img class="avatar avatar-lg rounded-circle" src="{{asset('storage/app/public/delivery-man/'.$order->delivery_man->image)}}" onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'" alt="Image">
+                                                <img class="avatar avatar-lg rounded-circle" src="{{asset('storage/delivery-man/'.$order->delivery_man->image)}}" onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'" alt="Image">
                                             </a>
                                             <div class="media-body d-flex flex-column gap-1">
                                                 <a target="" href="#" class="text-dark"><span>{{$order->delivery_man['f_name'].' '.$order->delivery_man['l_name'] ?? ''}}</span></a>
@@ -573,7 +573,7 @@
                             @if($order->customer)
                                 <div class="media flex-wrap gap-3">
                                     <a>
-                                        <img class="avatar avatar-lg rounded-circle" src="{{asset('storage/app/public/profile/'.$order->customer['image'])}}" onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'" alt="Image">
+                                        <img class="avatar avatar-lg rounded-circle" src="{{asset('storage/profile/'.$order->customer['image'])}}" onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'" alt="Image">
                                     </a>
                                     <div class="media-body d-flex flex-column gap-1">
                                         <a><strong>{{$order->customer['f_name'].' '.$order->customer['l_name']}}</strong></a>
@@ -620,7 +620,7 @@
                         </h4>
                         <div class="media flex-wrap gap-3">
                             <div class="">
-                                <img class="avatar avatar-lg rounded-circle" src="{{asset('storage/app/public/branch/'.$order->branch['image'])}}" onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'" alt="Image">
+                                <img class="avatar avatar-lg rounded-circle" src="{{asset('storage/branch/'.$order->branch['image'])}}" onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'" alt="Image">
                             </div>
                             <div class="media-body d-flex flex-column gap-1">
                                 <span class="text-dark"><span>{{$order->branch['name']}}</span></span>

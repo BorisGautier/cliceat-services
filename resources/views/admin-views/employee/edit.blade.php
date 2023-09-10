@@ -70,7 +70,7 @@
                                     <div class="text-center mb-3">
                                         <img width="180" class="rounded-10 border" id="viewer"
                                         onerror="this.src='{{asset('assets/admin/img/400x400/img2.jpg')}}'"
-                                        src="{{asset('storage/app/public/admin')}}/{{$e['image']}}" alt="Employee thumbnail"/>
+                                        src="{{asset('storage/admin')}}/{{$e['image']}}" alt="Employee thumbnail"/>
                                     </div>
                                     <div class="form-group">
                                         <label for="name">{{translate('employee_image')}}</label>

@@ -119,7 +119,7 @@
                                         <center class="mt-3">
                                             <img class="upload-img-view" id="viewer"
                                                 onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
-                                                src="{{asset('storage/app/public/delivery-man').'/'.$delivery_man['image']}}" alt="delivery-man image"/>
+                                                src="{{asset('storage/delivery-man').'/'.$delivery_man['image']}}" alt="delivery-man image"/>
                                         </center>
                                     </div>
 
@@ -127,7 +127,7 @@
                                     <!-- <div class="form-group">
                                         <img height="150"
                                             onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'"
-                                            src="{{asset('storage/app/public/delivery-man').'/'.$img}}">
+                                            src="{{asset('storage/delivery-man').'/'.$img}}">
                                     </div> -->
                                     @endforeach
                                 </div>

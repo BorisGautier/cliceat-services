@@ -32,7 +32,7 @@
                         <img class="navbar-brand-logo rounded-circle avatar avatar-lg"
                              style="border: 5px solid #80808012"
                              onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
-                             src="{{asset('storage/app/public/restaurant/'.$restaurant_logo)}}"
+                             src="{{asset('storage/restaurant/'.$restaurant_logo)}}"
                              alt="Logo">
                     </a>
                     {{\Illuminate\Support\Str::limit($current_branch->name,15)}}
@@ -61,7 +61,7 @@
                                         @php($restaurant_logo=\App\Model\BusinessSetting::where(['key'=>'logo'])->first()->value)
                                         <img class="avatar-img"
                                              onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
-                                             src="{{asset('storage/app/public/admin')}}/{{auth('admin')->user()->image}}"
+                                             src="{{asset('storage/admin')}}/{{auth('admin')->user()->image}}"
                                              alt="Image">
                                         <span class="avatar-status avatar-sm-status avatar-status-success"></span>
                                     </div>
@@ -74,7 +74,7 @@
                                             <div class="avatar avatar-sm avatar-circle mr-2">
                                                 <img class="avatar-img"
                                                      onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
-                                                     src="{{asset('storage/app/public/admin')}}/{{auth('admin')->user()->image}}"
+                                                     src="{{asset('storage/admin')}}/{{auth('admin')->user()->image}}"
                                                      alt="Owner image">
                                             </div>
                                             <div class="media-body">

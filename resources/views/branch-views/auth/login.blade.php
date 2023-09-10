@@ -29,7 +29,7 @@
         <div class="auth-wrapper-left">
             <div class="auth-left-cont">
                 @php($restaurant_logo=\App\Model\BusinessSetting::where(['key'=>'logo'])->first()->value)
-                <img width="310" src="{{asset('storage/app/public/restaurant/'.$restaurant_logo)}}"
+                <img width="310" src="{{asset('storage/restaurant/'.$restaurant_logo)}}"
                      onerror="this.src='{{asset('assets/admin/img/logo.png')}}'">
                 <h2 class="title">{{translate('your')}} <span class="d-block text-capitalize">{{translate('all_fresh_food')}}</span> <strong class="text--039D55 c1 text-capitalize">{{translate('in_one_place')}}....</strong></h2>
             </div>

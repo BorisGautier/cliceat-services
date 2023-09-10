@@ -80,7 +80,7 @@
                                         <div class="form-group">
                                             <div class="text-center">
                                                 <img width="180" class="rounded-10 border" id="viewer"
-                                                     src="{{asset('storage/app/public/promotion')}}/{{$promotion['promotion_name']}}" alt="image"
+                                                     src="{{asset('storage/promotion')}}/{{$promotion['promotion_name']}}" alt="image"
                                                      onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'"/>
                                             </div>
                                         </div>

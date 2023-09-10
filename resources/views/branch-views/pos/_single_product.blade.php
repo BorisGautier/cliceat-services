@@ -1,6 +1,6 @@
 <div class="pos-product-item card" onclick="quickView('{{$product->id}}')">
     <div class="pos-product-item_thumb">
-        <img class="img-fit" src="{{asset('storage/app/public/product')}}/{{$product['image']}}"
+        <img class="img-fit" src="{{asset('storage/product')}}/{{$product['image']}}"
                  onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'">
     </div>
     <?php

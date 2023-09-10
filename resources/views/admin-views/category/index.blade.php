@@ -159,7 +159,7 @@
                                         <td>{{$categories->firstitem()+$key}}</td>
                                         <td>
                                             <div>
-                                                <img width="50" class="avatar-img rounded" src="{{asset('storage/app/public/category')}}/{{$category['image']}}" onerror="this.src='{{asset('assets/admin/img/icons/category_img.png')}}'" alt="">
+                                                <img width="50" class="avatar-img rounded" src="{{asset('storage/category')}}/{{$category['image']}}" onerror="this.src='{{asset('assets/admin/img/icons/category_img.png')}}'" alt="">
                                             </div>
                                         </td>
                                         <td><div class="text-capitalize">{{$category['name']}}</div></td>

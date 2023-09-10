@@ -62,7 +62,7 @@
                                         <td>
                                             <div class="media align-items-center gap-3">
                                                 <div class="avatar">
-                                                    <img src="{{asset('storage/app/public/product')}}/{{$product['image']}}" class="rounded img-fit"
+                                                    <img src="{{asset('storage/product')}}/{{$product['image']}}" class="rounded img-fit"
                                                         onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'">
                                                 </div>
                                                 <div class="media-body">

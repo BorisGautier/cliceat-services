@@ -6,7 +6,7 @@
                 @if($review->product)
                     <a class="text-dark media align-items-center gap-2" href="{{route('admin.product.view',[$review['product_id']])}}">
                         <div class="avatar">
-                            <img class="rounded-circle img-fit" src="{{asset('storage/app/public/product')}}/{{$review->product['image']}}" alt=""
+                            <img class="rounded-circle img-fit" src="{{asset('storage/product')}}/{{$review->product['image']}}" alt=""
                                  onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'">
                         </div>
                         <span class="media-body max-w220 text-wrap">{{$review->product['name']}}</span>

@@ -76,7 +76,7 @@
                                                 <div class="avatar">
                                                     <img width="60" class="img-fit rounded-circle"
                                                         onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
-                                                        src="{{asset('storage/app/public/delivery-man')}}/{{$dm['image']}}">
+                                                        src="{{asset('storage/delivery-man')}}/{{$dm['image']}}">
                                                 </div>
                                                 <div class="media-body">
                                                     {{$dm['f_name'].' '.$dm['l_name']}}
@@ -105,7 +105,7 @@
                                         <td class="text-center">
                                             <div class="d-flex gap-2" data-toggle="" data-placement="top" title="{{translate('click for bigger view')}}">
                                                 @foreach(json_decode($dm['identity_image'], true) as $identification_image)
-                                                    @php($image_full_path = asset('storage/app/public/delivery-man'). '/' .$identification_image)
+                                                    @php($image_full_path = asset('storage/delivery-man'). '/' .$identification_image)
                                                     <div class="overflow-hidden">
                                                         <img class="cursor-pointer rounded img-fit" style="max-height: 60px; width: 100px; min-width: 100px;"
                                                              onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"

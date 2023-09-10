@@ -3,7 +3,7 @@
     <div class="media align-items-center gap-3 border rounded p-2 mb-3">
         <div class="avatar">
             <img class="img-fit rounded-circle"
-                 src="{{asset('storage/app/public/profile/'.$user['image'])}}"
+                 src="{{asset('storage/profile/'.$user['image'])}}"
                  onerror="this.src='{{asset('assets/admin')}}/img/160x160/img1.jpg'"
                  alt="Image Description">
         </div>
@@ -50,8 +50,8 @@
                                 @foreach($image_array as $key=>$image)
                                     @php($image_url = $image)
                                     <div class="col-12 @if(count(json_decode($con->image, true)) > 1) col-md-6 @endif">
-                                        <a href="{{asset('storage/app/public/conversation').'/'.$image_url}}" data-lightbox="{{$con->id . $image_url }}" >
-                                            <img class="rounded" src="{{asset('storage/app/public/conversation').'/'.$image_url}}" onerror="this.src='{{asset('assets/admin/img/900x400/img1.jpg')}}'" />
+                                        <a href="{{asset('storage/conversation').'/'.$image_url}}" data-lightbox="{{$con->id . $image_url }}" >
+                                            <img class="rounded" src="{{asset('storage/conversation').'/'.$image_url}}" onerror="this.src='{{asset('assets/admin/img/900x400/img1.jpg')}}'" />
                                         </a><br>
                                     </div>
                                 @endforeach

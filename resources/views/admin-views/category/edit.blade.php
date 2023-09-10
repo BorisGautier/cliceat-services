@@ -89,7 +89,7 @@
                                                         <div class="text-center">
                                                             <img width="105" class="rounded-10 border" id="viewer"
                                                                 onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
-                                                                src="{{asset('storage/app/public/category')}}/{{$category['image']}}" alt="image" />
+                                                                src="{{asset('storage/category')}}/{{$category['image']}}" alt="image" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -110,7 +110,7 @@
                                                         <div class="text-center">
                                                             <img width="500" class="rounded-10 border" id="viewer2"
                                                                 onerror="this.src='{{asset('assets/admin/img/1920x400/img2.jpg')}}'"
-                                                                src="{{asset('storage/app/public/category/banner')}}/{{$category['banner_image']}}" alt="image" />
+                                                                src="{{asset('storage/category/banner')}}/{{$category['banner_image']}}" alt="image" />
                                                         </div>
                                                     </div>
                                                 </div>

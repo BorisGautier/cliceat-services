@@ -121,7 +121,7 @@
                                 <div class="text-center">
                                     <img class="upload-img-view" id="viewer"
                                          onerror="this.src='{{asset('assets/admin/img/400x400/img2.jpg')}}'"
-                                         src="{{asset('storage/app/public/kitchen')}}/{{$chef['image']}}" alt="image"/>
+                                         src="{{asset('storage/kitchen')}}/{{$chef['image']}}" alt="image"/>
                                 </div>
                             </div>
                         </div>

@@ -70,7 +70,7 @@
                                     </div>
                                 </div>
                                 <div class="text-center">
-                                    <img class="upload-img-view" id="viewer" src="{{asset('storage/app/public/kitchen')}}/{{$chef['image']}}"
+                                    <img class="upload-img-view" id="viewer" src="{{asset('storage/kitchen')}}/{{$chef['image']}}"
                                          onerror="this.src='{{asset('assets/admin/img/400x400/img2.jpg')}}'" alt="image"/>
                                 </div>
                             </div>

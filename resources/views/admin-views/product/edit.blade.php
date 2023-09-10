@@ -102,7 +102,7 @@
 
                                         <center style="display: block" id="image-viewer-section" class="pt-2">
                                             <img style="height: 200px;border: 1px solid; border-radius: 10px;" id="viewer"
-                                                src="{{asset('storage/app/public/product')}}/{{$product['image']}}"
+                                                src="{{asset('storage/product')}}/{{$product['image']}}"
                                                 onerror="this.src='{{asset('assets/admin/img/400x400/img2.jpg')}}'"
                                                 alt="product image"/>
                                         </center> -->
@@ -112,7 +112,7 @@
                                             <div class="upload-file">
                                                 <input type="file" name="image" accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*" class="upload-file__input">
                                                 <div class="upload-file__img_drag upload-file__img">
-                                                    <img width="176" src="{{asset('storage/app/public/product')}}/{{$product['image']}}"
+                                                    <img width="176" src="{{asset('storage/product')}}/{{$product['image']}}"
                                                         onerror="this.src='{{asset('assets/admin/img/400x400/img2.jpg')}}'" alt="">
                                                 </div>
                                             </div>

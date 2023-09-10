@@ -673,7 +673,7 @@
                                     <div class="avatar">
                                         <img class="img-fit rounded-circle" loading="lazy" decoding="async"
                                              onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'"
-                                             src="{{asset('/storage/app/public/delivery-man/'.$deliveryMan->image)}}" alt="Jhon Doe">
+                                             src="{{asset('/storage/delivery-man/'.$deliveryMan->image)}}" alt="Jhon Doe">
                                     </div>
                                     <span>{{$deliveryMan['f_name'].' '.$deliveryMan['l_name']}}</span>
                                 </div>

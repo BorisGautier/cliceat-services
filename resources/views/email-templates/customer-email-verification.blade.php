@@ -38,7 +38,7 @@
 
                     <td align="left" valign="top" colspan="2"
                         style="border-bottom: 1px solid #CCCCCC; padding-bottom: 10px;">
-                        <img alt="" border="0" src="{{url('/').'/storage/app/public/restaurant/'.$logo}}" title=""
+                        <img alt="" border="0" src="{{url('/').'/storage/restaurant/'.$logo}}" title=""
                              class="sitelogo" width="60%" style="max-width:250px;"/>
                     </td>
 

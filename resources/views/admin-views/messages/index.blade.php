@@ -26,7 +26,7 @@
                     <div class="py-4" id="conversation_sidebar">
                         <div class="chat_people media px-3 gap-3 mb-4">
                             <div class="avatar position-relative">
-                                <img src="{{asset('/storage/app/public/admin/'.auth('admin')->user()->image)}}" class="img-fit rounded-circle" onerror="this.src='{{asset('assets/admin')}}/img/160x160/img1.jpg'">
+                                <img src="{{asset('/storage/admin/'.auth('admin')->user()->image)}}" class="img-fit rounded-circle" onerror="this.src='{{asset('assets/admin')}}/img/160x160/img1.jpg'">
                                 <span class="avatar-status status-sm bg-success"></span>
                             </div>
                             <div class="chat_ib media-body">

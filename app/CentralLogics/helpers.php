@@ -289,7 +289,7 @@ class Helpers
                 "is_read": 0,
                 "icon" : "new",
                 "sound": "notification",
-                "android_channel_id": "efood"
+                "android_channel_id": "cliceat"
             }
         }';
         $ch = curl_init();
@@ -340,7 +340,7 @@ class Helpers
                     "is_read": 0,
                     "icon" : "new",
                     "sound": "notification",
-                    "android_channel_id": "efood"
+                    "android_channel_id": "cliceat"
                   }
             }';
         } else {
@@ -364,7 +364,7 @@ class Helpers
                     "is_read": 0,
                     "icon" : "new",
                     "sound": "notification",
-                    "android_channel_id": "efood"
+                    "android_channel_id": "cliceat"
                   }
             }';
         }

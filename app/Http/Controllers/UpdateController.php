@@ -28,7 +28,7 @@ class UpdateController extends Controller
         Helpers::setEnvironmentValue('PURCHASE_CODE', $request['purchase_key']);
         Helpers::setEnvironmentValue('APP_MODE', 'live');
         Helpers::setEnvironmentValue('SOFTWARE_VERSION', '10.0');
-        Helpers::setEnvironmentValue('APP_NAME', 'efood');
+        Helpers::setEnvironmentValue('APP_NAME', 'cliceat');
 
         $data = Helpers::requestSender($request);
         if (!$data['active']) {

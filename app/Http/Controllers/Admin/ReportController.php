@@ -24,7 +24,6 @@ class ReportController extends Controller
     {
     }
 
-
     /**
      * @return Renderable
      */

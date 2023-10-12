@@ -16,7 +16,9 @@ class ProductByBranch extends Model
         'discount',
         'branch_id',
         'is_available',
-        'variations'
+        'variations',
+        'stock_type',
+        'stock',
     ];
 
     protected $casts = [
@@ -28,6 +30,9 @@ class ProductByBranch extends Model
         'branch_id' => 'integer',
         'is_available' => 'integer',
         'variations' => 'array',
+        'stock_type' => 'string',
+        'stock' => 'integer',
+        'sold_quantity' => 'integer',
     ];
 
     public function product(): BelongsTo

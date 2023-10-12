@@ -573,12 +573,12 @@
                                             <span class="text-truncate">{{translate('list')}}</span>
                                         </a>
                                     </li>
-                                    <li class="nav-item {{Request::is('admin/customer/settings')  ? 'active' : ''}}">
-                                        <a class="nav-link" href="{{route('admin.customer.settings')}}">
-                                            <span class="tio-circle nav-indicator-icon"></span>
-                                            <span class="text-truncate">{{translate('settings')}}</span>
-                                        </a>
-                                    </li>
+{{--                                    <li class="nav-item {{Request::is('admin/customer/settings')  ? 'active' : ''}}">--}}
+{{--                                        <a class="nav-link" href="{{route('admin.customer.settings')}}">--}}
+{{--                                            <span class="tio-circle nav-indicator-icon"></span>--}}
+{{--                                            <span class="text-truncate">{{translate('settings')}}</span>--}}
+{{--                                        </a>--}}
+{{--                                    </li>--}}
 {{--                                    <li class="nav-item {{Request::is('admin/customer/transaction')? 'active':''}}">--}}
 {{--                                        <a class="nav-link" href="{{route('admin.customer.transaction')}}">--}}
 {{--                                            <span class="tio-circle nav-indicator-icon"></span>--}}
@@ -596,7 +596,7 @@
                                         {{translate('customer wallet')}}
                                     </span>
                                 </a>
-                                <ul class="js-navbar-vertical-aside-submenu nav nav-sub" style="display: {{Request::is('admin/customer/wallet/add-fund') || Request::is('admin/customer/wallet/report')?'block':''}}; top: 831.076px;">
+                                <ul class="js-navbar-vertical-aside-submenu nav nav-sub" style="display: {{Request::is('admin/customer/wallet/add-fund') || Request::is('admin/customer/wallet/report') || Request::is('admin/customer/wallet/bonus*')?'block':''}}; top: 831.076px;">
                                     <li class="nav-item {{Request::is('admin/customer/wallet/add-fund') ? 'active' : ''}}">
                                         <a class="nav-link" href="{{route('admin.customer.wallet.add-fund')}}">
                                             <span class="tio-circle nav-indicator-icon"></span>
@@ -607,6 +607,12 @@
                                         <a class="nav-link" href="{{route('admin.customer.wallet.report')}}">
                                             <span class="tio-circle nav-indicator-icon"></span>
                                             <span class="text-truncate">{{translate('report')}}</span>
+                                        </a>
+                                    </li>
+                                    <li class="nav-item {{Request::is('admin/customer/wallet/bonus*') ? 'active' : ''}}">
+                                        <a class="nav-link" href="{{route('admin.customer.wallet.bonus.index')}}">
+                                            <span class="tio-circle nav-indicator-icon"></span>
+                                            <span class="text-truncate">{{translate('wallet_bonus_setup')}}</span>
                                         </a>
                                     </li>
 
@@ -819,6 +825,15 @@
                         </li>
                         <!-- END Business_Setup -->
 
+                            <!-- Email setup -->
+                            <li class="navbar-vertical-aside-has-menu {{ Request::is('admin/business-settings/email-setup*') ? 'active' : '' }}">
+                                <a class="js-navbar-vertical-aside-menu-link nav-link"  href="{{ route('admin.business-settings.email-setup',['user','new-order']) }}">
+                                    <i class="tio-email nav-icon"></i>
+                                    <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{translate('Email_Template')}}</span>
+                                </a>
+                            </li>
+                            <!-- END email setup -->
+
                         <!--BRANCH SETUP -->
                         <li class="navbar-vertical-aside-has-menu {{Request::is('admin/branch*')?'active':''}}">
                                 <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle"
@@ -877,16 +892,39 @@
 
                         @if(Helpers::module_permission_check(MANAGEMENT_SECTION['system_management']))
                         <!-- 3rd Party -->
-                        <li class="navbar-vertical-aside-has-menu {{Request::is('admin/business-settings/web-app/third-party*')?'active':''}}">
-                            <a class="js-navbar-vertical-aside-menu-link nav-link"
-                               href="{{route('admin.business-settings.web-app.payment-method')}}"
-                            >
-                                <i class="tio-running nav-icon"></i>
-                                <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
-                                        {{translate('3rd_Party')}}
-                                    </span>
-                            </a>
-                        </li>
+
+                            <li class="navbar-vertical-aside-has-menu {{Request::is('admin/business-settings/web-app/third-party*')?'active':''}}">
+                                <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:">
+                                    <i class="tio-running nav-icon"></i>
+                                    <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{translate('3rd_Party')}}</span>
+                                </a>
+                                <ul class="js-navbar-vertical-aside-submenu nav nav-sub" style="display: {{Request::is('admin/business-settings/web-app/third-party*')?'block':'none'}}">
+                                    <!-- Page Setup -->
+                                    <li class="nav-item {{Request::is('admin/business-settings/web-app/third-party/payment-method') || Request::is('admin/business-settings/web-app/third-party/mail-config') || Request::is('admin/business-settings/web-app/third-party/sms-module')||
+                                                        Request::is('admin/business-settings/web-app/third-party/map-api-settings') || Request::is('admin/business-settings/web-app/third-party/recaptcha') ||
+                                                        Request::is('admin/business-settings/web-app/third-party/social-login') || Request::is('admin/business-settings/web-app/third-party/chat')?'active':''}}">
+                                        <a class="nav-link" href="{{route('admin.business-settings.web-app.payment-method')}}">
+                                            <span class="tio-circle nav-indicator-icon"></span>
+                                            <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{translate('3rd Party Configurations')}}</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="nav-item {{Request::is('admin/business-settings/web-app/third-party/offline-payment*')?'active':''}}">
+                                        <a class="nav-link" href="{{route('admin.business-settings.web-app.third-party.offline-payment.list')}}">
+                                            <span class="tio-circle nav-indicator-icon"></span>
+                                            <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{translate('Offline Payment Method')}}</span>
+                                        </a>
+                                    </li>
+
+                                    <li class="nav-item {{Request::is('admin/business-settings/web-app/third-party/fcm*')?'active':''}}">
+                                        <a class="nav-link" href="{{route('admin.business-settings.web-app.third-party.fcm-index')}}">
+                                            <span class="tio-circle nav-indicator-icon"></span>
+                                            <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{translate('Firebase Notification')}}</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </li>
+
                         <!-- End 3rd Party -->
 
                         <!-- SYSTEM SETTINGS -->
@@ -896,10 +934,45 @@
                                 <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{translate('System Setup')}}</span>
                             </a>
                         </li>
+
+                            <li class="nav-item">
+                                <small class="nav-subtitle">{{translate('system')}} {{translate('addon')}}</small>
+                                <small class="tio-more-horizontal nav-subtitle-replacer"></small>
+                            </li>
+
+                            <li class="navbar-vertical-aside-has-menu {{Request::is('admin/system-addon')?'active':''}}">
+                                <a class="js-navbar-vertical-aside-menu-link nav-link"
+                                   href="{{route('admin.system-addon.index')}}" title="{{translate('System Addons')}}">
+                                    <i class="tio-add-circle-outlined nav-icon"></i>
+                                    <span class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">
+                                        {{translate('System Addons')}}
+                                    </span>
+                                </a>
+                            </li>
+
+                            @if(count(config('addon_admin_routes'))>0)
+                                <li class="navbar-vertical-aside-has-menu {{Request::is('admin/payment/configuration/*') || Request::is('admin/sms/configuration/*')?'active':''}} mb-5">
+                                    <a class="js-navbar-vertical-aside-menu-link nav-link nav-link-toggle" href="javascript:" >
+                                        <i class="tio-puzzle nav-icon"></i>
+                                        <span  class="navbar-vertical-aside-mini-mode-hidden-elements text-truncate">{{translate('Addon Menus')}}</span>
+                                    </a>
+                                    <ul class="js-navbar-vertical-aside-submenu nav nav-sub" style="display: {{Request::is('admin/payment/configuration/*') || Request::is('admin/sms/configuration/*')?'block':'none'}}">
+                                        @foreach(config('addon_admin_routes') as $routes)
+                                            @foreach($routes as $route)
+                                                <li class="navbar-vertical-aside-has-menu {{Request::is($route['path'])  ? 'active' :''}}">
+                                                    <a class="js-navbar-vertical-aside-menu-link nav-link "
+                                                       href="{{ $route['url'] }}" title="{{ translate($route['name']) }}">
+                                                        <span class="tio-circle nav-indicator-icon"></span>
+                                                        <span class="text-truncate">{{ translate($route['name']) }}</span>
+                                                    </a>
+                                                </li>
+                                            @endforeach
+                                        @endforeach
+                                    </ul>
+                                </li>
+                            @endif
                         @endif
                         <!--END SYSTEM SETTINGS -->
-
-
                         <li class="nav-item pt-10">
                             <div class=""></div>
                         </li>

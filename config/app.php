@@ -178,6 +178,7 @@ return [
         \App\Providers\ConfigServiceProvider::class,
 //        Kreait\Laravel\Firebase\ServiceProvider::class,
         Unicodeveloper\Paystack\PaystackServiceProvider::class,
+        Nwidart\Modules\LaravelModulesServiceProvider::class,
     ],
 
     /*
@@ -232,6 +233,7 @@ return [
         'PDF' => Barryvdh\DomPDF\Facade::class,
         'Paystack' => Unicodeveloper\Paystack\Facades\Paystack::class,
         'Helpers' => \App\CentralLogics\helpers::class,
+        'Module' => Nwidart\Modules\Facades\Module::class,
     ],
 
 ];

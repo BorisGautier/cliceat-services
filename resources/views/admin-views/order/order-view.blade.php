@@ -125,27 +125,27 @@
                                         <span class="text-dark">{{str_replace('_',' ',$order['payment_method'])}}</span>
                                     </div>
 
-{{--                                    <div class="d-flex gap-3 justify-content-sm-end align-items-center mb-3">--}}
-                                        @if($order['transaction_reference']==null && $order['order_type']!='pos')
-                                        <div class="d-flex gap-3 justify-content-sm-end align-items-center mb-3">
-                                            {{translate('reference')}} {{translate('code')}} :
-                                            <button class="btn btn-outline-primary px-3 py-1" data-toggle="modal"
-                                                    data-target=".bd-example-modal-sm">
-                                                {{translate('add')}}
-                                            </button>
-                                        </div>
-                                        @elseif($order['order_type']!='pos')
-                                        <div class="d-flex gap-3 justify-content-sm-end align-items-center mb-3">
-                                            {{translate('reference')}} {{translate('code')}}
-                                            : {{$order['transaction_reference']}}
-                                        </div>
-                                        @endif
-{{--                                    </div>--}}
+                                    @if($order['transaction_reference']==null && $order['order_type']!='pos')
+                                    <div class="d-flex gap-3 justify-content-sm-end align-items-center mb-3">
+                                        {{translate('reference')}} {{translate('code')}} :
+                                        <button class="btn btn-outline-primary px-3 py-1" data-toggle="modal"
+                                                data-target=".bd-example-modal-sm">
+                                            {{translate('add')}}
+                                        </button>
+                                    </div>
+                                    @elseif($order['order_type']!='pos')
+                                    <div class="d-flex gap-3 justify-content-sm-end align-items-center mb-3">
+                                        {{translate('reference')}} {{translate('code')}}
+                                        : {{$order['transaction_reference']}}
+                                    </div>
+                                    @endif
 
                                     <div class="d-flex gap-3 justify-content-sm-end mb-3">
                                         <div>{{translate('Payment_Status')}} :</div>
                                         @if($order['payment_status']=='paid')
                                             <span class="badge-soft-success px-2 rounded text-capitalize">{{translate('paid')}}</span>
+                                        @elseif($order['payment_status']=='partial_paid')
+                                            <span class="badge-soft-success px-2 rounded text-capitalize">{{translate('partial_paid')}}</span>
                                         @else
                                             <span class="badge-soft-danger px-2 rounded text-capitalize">{{translate('unpaid')}}</span>
                                         @endif
@@ -202,7 +202,7 @@
                                                  alt="Image Description">
 
                                             <div class="media-body text-dark fz-12">
-{{--                                                <h6 class="text-capitalize">{{$detail->product?->name}}</h6>--}}
+                                                {{--<h6 class="text-capitalize">{{$detail->product?->name}}</h6>--}}
                                                 <h6 class="text-capitalize">{{$product_details['name']}}</h6>
                                                 <div class="d-flex gap-2">
                                                     @if (isset($detail['variation']))
@@ -378,8 +378,37 @@
                                         <span>:</span>
                                         </div>
                                     </dt>
-                                    {{--<dd class="col-6 border-top pt-2 fz-16 font-weight-bold text-dark">{{ \App\CentralLogics\Helpers::set_symbol($sub_total+$del_c+$total_tax+$add_ons_cost-$order['coupon_discount_amount']-$order['extra_discount']) }}</dd> --}}
                                     <dd class="col-6 border-top pt-2 fz-16 font-weight-bold text-dark text-right">{{ \App\CentralLogics\Helpers::set_symbol($sub_total - $order['coupon_discount_amount'] - $order['extra_discount'] + $del_c) }}</dd>
+
+                                    <!-- partial payment-->
+                                    @if ($order->order_partial_payments->isNotEmpty())
+                                        @foreach($order->order_partial_payments as $partial)
+                                            <dt class="col-6">
+                                                <div class="d-flex max-w220 ml-auto">
+                                            <span>
+                                                {{translate('Paid By')}} ({{str_replace('_', ' ',$partial->paid_with)}})</span>
+                                                    <span>:</span>
+                                                </div>
+                                            </dt>
+                                            <dd class="col-6 text-dark text-right">
+                                                {{ \App\CentralLogics\Helpers::set_symbol($partial->paid_amount) }}
+                                            </dd>
+                                        @endforeach
+                                            <?php
+                                                $due_amount = 0;
+                                                $due_amount = $order->order_partial_payments->first()?->due_amount;
+                                            ?>
+                                            <dt class="col-6">
+                                                <div class="d-flex max-w220 ml-auto">
+                                            <span>
+                                                {{translate('Due Amount')}}</span>
+                                                    <span>:</span>
+                                                </div>
+                                            </dt>
+                                            <dd class="col-6 text-dark text-right">
+                                                {{ \App\CentralLogics\Helpers::set_symbol($due_amount) }}
+                                            </dd>
+                                    @endif
                                 </dl>
                             </div>
                         </div>
@@ -388,7 +417,7 @@
                 <!-- End Card -->
             </div>
 
-{{--            @if($order->customer)--}}
+            {{--@if($order->customer)--}}
                 <div class="col-lg-4">
                     @if($order['order_type'] != 'pos')
                     <div class="card mb-3">
@@ -416,38 +445,51 @@
                                     </select>
                                 </div>
                                 <div class="">
-                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                        <a class="dropdown-item"
-                                           onclick="route_alert('{{route('admin.orders.payment-status',['id'=>$order['id'],'payment_status'=>'paid'])}}','{{\App\CentralLogics\translate("Change status to paid ?")}}')"
-                                           href="javascript:">{{translate('paid')}}</a>
-                                        <a class="dropdown-item"
-                                           onclick="route_alert('{{route('admin.orders.payment-status',['id'=>$order['id'],'payment_status'=>'unpaid'])}}','{{\App\CentralLogics\translate("Change status to unpaid ?")}}')"
-                                           href="javascript:">{{translate('unpaid')}}</a>
-                                    </div>
-                                    <label class="font-weight-bold text-dark fz-14">{{translate('Payment_Status')}}</label>
-                                    <select name="order_status" onchange="route_alert('{{route('admin.orders.payment-status',['id'=>$order['id']])}}'+'&payment_status='+ this.value,'{{\App\CentralLogics\translate("Change status to ")}}' + this.value)" class="status custom-select" data-id="100147">
+{{--                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">--}}
+{{--                                        <a class="dropdown-item"--}}
+{{--                                           onclick="route_alert('{{route('admin.orders.payment-status',['id'=>$order['id'],'payment_status'=>'paid'])}}','{{\App\CentralLogics\translate("Change status to paid ?")}}')"--}}
+{{--                                           href="javascript:">{{translate('paid')}}</a>--}}
+{{--                                        <a class="dropdown-item"--}}
+{{--                                           onclick="route_alert('{{route('admin.orders.payment-status',['id'=>$order['id'],'payment_status'=>'unpaid'])}}','{{\App\CentralLogics\translate("Change status to unpaid ?")}}')"--}}
+{{--                                           href="javascript:">{{translate('unpaid')}}</a>--}}
+{{--                                    </div>--}}
+{{--                                    <label class="font-weight-bold text-dark fz-14">{{translate('Payment_Status')}}</label>--}}
+
+                                    {{-- <select name="order_status" onchange="route_alert('{{route('admin.orders.payment-status',['id'=>$order['id']])}}'+'&payment_status='+ this.value,'{{\App\CentralLogics\translate("Change status to ")}}' + this.value)" class="status custom-select" data-id="100147">
                                         <option value="paid" {{$order['payment_status'] == 'paid'? 'selected' : ''}}> {{translate('paid')}}</option>
                                         <option value="unpaid" {{$order['payment_status'] == 'unpaid'? 'selected' : ''}}>{{translate('unpaid')}} </option>
-                                    </select>
-                                </div>
-                            @endif
-                            @if($order->customer)
-                            <div class="">
-{{--                                need change option--}}
-                                <label class="font-weight-bold text-dark fz-14">{{translate('Delivery_Date_&_Time')}} {{$order['delivery_date'] > \Carbon\Carbon::now()->format('Y-m-d')? translate('(Scheduled)') : ''}}</label>
-                                <div class="d-flex gap-2 flex-wrap flex-xxl-nowrap">
-                                    <input onchange="changeDeliveryTimeDate(this)" name="delivery_date" type="date" class="form-control" value="{{$order['delivery_date'] ?? ''}}">
-                                    <input onchange="changeDeliveryTimeDate(this)" name="delivery_time" type="time" class="form-control" value="{{$order['delivery_time'] ?? ''}}">
-                                </div>
-                            </div>
-                            @if($order['order_type']!='take_away' && $order['order_type'] != 'pos' && $order['order_type'] != 'dine_in' && !$order['delivery_man_id'])
+                                    </select> --}}
 
-                                <a href="#" class="btn btn-primary btn-block d-flex gap-1 justify-content-center align-items-center" data-toggle="modal" data-target="#assignDeliveryMan">
-                                    <img width="17" src="{{asset('assets/admin/img/icons/assain_delivery_man.png')}}" alt="">
-                                    {{translate('Assign_Delivery_Man')}}
-                                </a>
+
+                                    <div class="d-flex justify-content-between align-items-center gap-10 form-control">
+                                        <span class="title-color">{{ translate('Payment Status') }}</span>
+
+                                        <label class="switcher payment-status-text">
+                                            <input class="switcher_input" type="checkbox" name="payment_status" value="1"
+                                                   onclick="location.href='{{route('admin.orders.payment-status',['id'=>$order['id'],'payment_status' =>$order->payment_status == 'paid' ?'unpaid':'paid'])}}'"
+                                                {{$order->payment_status == 'paid' ?'checked':''}}>
+                                            <span class="switcher_control"></span>
+                                        </label>
+                                    </div>
+                                </div>
                             @endif
-@endif
+                            @if($order->customer || $order->is_guest == 1)
+                                <div class="">
+                                {{--need change option--}}
+                                    <label class="font-weight-bold text-dark fz-14">{{translate('Delivery_Date_&_Time')}} {{$order['delivery_date'] > \Carbon\Carbon::now()->format('Y-m-d')? translate('(Scheduled)') : ''}}</label>
+                                    <div class="d-flex gap-2 flex-wrap flex-xxl-nowrap">
+                                        <input onchange="changeDeliveryTimeDate(this)" name="delivery_date" type="date" class="form-control" value="{{$order['delivery_date'] ?? ''}}">
+                                        <input onchange="changeDeliveryTimeDate(this)" name="delivery_time" type="time" class="form-control" value="{{$order['delivery_time'] ?? ''}}">
+                                    </div>
+                                </div>
+                                @if($order['order_type']!='take_away' && $order['order_type'] != 'pos' && $order['order_type'] != 'dine_in' && !$order['delivery_man_id'])
+
+                                    <a href="#" class="btn btn-primary btn-block d-flex gap-1 justify-content-center align-items-center" data-toggle="modal" data-target="#assignDeliveryMan">
+                                        <img width="17" src="{{asset('assets/admin/img/icons/assain_delivery_man.png')}}" alt="">
+                                        {{translate('Assign_Delivery_Man')}}
+                                    </a>
+                                @endif
+                            @endif
                             {{-- counter --}}
                             <div class="">
                                 @if($order['order_type'] != 'pos' && $order['order_type'] != 'take_away' && ($order['order_status'] != DELIVERED && $order['order_status'] != RETURNED && $order['order_status'] != CANCELED && $order['order_status'] != FAILED && $order['order_status'] != COMPLETED))
@@ -477,7 +519,7 @@
                                             </a>
                                         </h4>
                                         <div class="media flex-wrap gap-3">
-                                            <a target="_blank" class="" href="{{route('admin.customer.view',[$order->customer['id']])}}">
+                                            <a>
                                                 <img class="avatar avatar-lg rounded-circle" src="{{asset('storage/delivery-man/'.$order->delivery_man->image)}}" onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'" alt="Image">
                                             </a>
                                             <div class="media-body d-flex flex-column gap-1">
@@ -526,7 +568,7 @@
                             @if($order['order_type']!='take_away' && $order['order_type'] != 'pos' && $order['order_type'] != 'dine_in')
                             <div class="card">
                                 <div class="card-body">
-{{--                                    <div class="d-flex justify-content-between gap-3 border-top mt-3 pt-3">--}}
+                                    {{--<div class="d-flex justify-content-between gap-3 border-top mt-3 pt-3">--}}
                                     <div class="mb-4 d-flex gap-2 justify-content-between">
                                         <h4 class="mb-0 d-flex gap-2">
                                             <i class="tio-user text-dark"></i>
@@ -593,45 +635,57 @@
                                 <i class="tio-user text-dark"></i>
                                 {{ \App\CentralLogics\translate('Customer Information') }}
                             </h4>
-                            @if($order->customer)
-                                <div class="media flex-wrap gap-3">
-                                    <a target="_blank" class="" href="{{route('admin.customer.view',[$order->customer['id']])}}">
-                                        <img class="avatar avatar-lg rounded-circle" src="{{asset('storage/profile/'.$order->customer['image'])}}" onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'" alt="Image">
+                            @if($order->is_guest == 1)
+                                <div class="media flex-wrap gap-3 align-items-center">
+                                    <a target="#" class="" >
+                                        <img class="avatar avatar-lg rounded-circle" src="{{asset('assets/admin/img/160x160/img1.jpg')}}" alt="Image">
                                     </a>
                                     <div class="media-body d-flex flex-column gap-1">
-                                        <a target="_blank" href="{{route('admin.customer.view',[$order->customer['id']])}}" class="text-dark"><strong>{{$order->customer['f_name'].' '.$order->customer['l_name']}}</strong></a>
-                                        <span class="text-dark">{{$order->customer['orders_count']}} {{translate('Orders')}}</span>
-                                        <span class="text-dark">
+                                        <a target="#"  class="text-dark text-capitalize"><strong>{{translate('Guest Customer')}}</strong></a>
+                                    </div>
+                                </div>
+                            @else
+                                @if($order->customer)
+                                    <div class="media flex-wrap gap-3">
+                                        <a target="_blank" class="" href="{{route('admin.customer.view',[$order->customer['id']])}}">
+                                            <img class="avatar avatar-lg rounded-circle" src="{{asset('storage/profile/'.$order->customer['image'])}}" onerror="this.src='{{asset('assets/admin/img/160x160/img1.jpg')}}'" alt="Image">
+                                        </a>
+                                        <div class="media-body d-flex flex-column gap-1">
+                                            <a target="_blank" href="{{route('admin.customer.view',[$order->customer['id']])}}" class="text-dark"><strong>{{$order->customer['f_name'].' '.$order->customer['l_name']}}</strong></a>
+                                            <span class="text-dark">{{$order->customer['orders_count']}} {{translate('Orders')}}</span>
+                                            <span class="text-dark">
                                             <i class="tio-call-talking-quiet mr-2"></i>
                                             <a class="text-dark break-all" href="tel:{{$order->customer['phone']}}">{{$order->customer['phone']}}</a>
                                         </span>
-                                        <span class="text-dark">
+                                            <span class="text-dark">
                                             <i class="tio-email mr-2"></i>
                                             <a class="text-dark break-all" href="mailto:{{$order->customer['email']}}">{{$order->customer['email']}}</a>
                                         </span>
+                                        </div>
                                     </div>
-                                </div>
-                            @endif
-                            @if($order->user_id == null)
-                                <div class="media flex-wrap gap-3 align-items-center">
-                                    <a target="#" class="" >
-                                        <img class="avatar avatar-lg rounded-circle" src="{{asset('assets/admin/img/160x160/img1.jpg')}}" alt="Image">
-                                    </a>
-                                    <div class="media-body d-flex flex-column gap-1">
-                                        <a target="#"  class="text-dark text-capitalize"><strong>{{translate('walking_customer')}}</strong></a>
+                                @endif
+                                @if($order->user_id == null)
+                                    <div class="media flex-wrap gap-3 align-items-center">
+                                        <a target="#" class="" >
+                                            <img class="avatar avatar-lg rounded-circle" src="{{asset('assets/admin/img/160x160/img1.jpg')}}" alt="Image">
+                                        </a>
+                                        <div class="media-body d-flex flex-column gap-1">
+                                            <a target="#"  class="text-dark text-capitalize"><strong>{{translate('walking_customer')}}</strong></a>
+                                        </div>
                                     </div>
-                                </div>
-                            @endif
-                            @if($order->user_id != null && !isset($order->customer))
-                                <div class="media flex-wrap gap-3 align-items-center">
-                                    <a target="#" class="" >
-                                        <img class="avatar avatar-lg rounded-circle" src="{{asset('assets/admin/img/160x160/img1.jpg')}}" alt="Image">
-                                    </a>
-                                    <div class="media-body d-flex flex-column gap-1">
-                                        <a target="#"  class="text-dark text-capitalize"><strong>{{translate('Customer_not_available')}}</strong></a>
+                                @endif
+                                @if($order->user_id != null && !isset($order->customer))
+                                    <div class="media flex-wrap gap-3 align-items-center">
+                                        <a target="#" class="" >
+                                            <img class="avatar avatar-lg rounded-circle" src="{{asset('assets/admin/img/160x160/img1.jpg')}}" alt="Image">
+                                        </a>
+                                        <div class="media-body d-flex flex-column gap-1">
+                                            <a target="#"  class="text-dark text-capitalize"><strong>{{translate('Customer_not_available')}}</strong></a>
+                                        </div>
                                     </div>
-                                </div>
+                                @endif
                             @endif
+
                         </div>
                     </div>
 
@@ -746,7 +800,7 @@
     <!-- Modal -->
     <div class="modal fade" tabindex="-1" role="dialog" aria-labelledby="deliveryInfoModal" id="deliveryInfoModal"
          aria-hidden="true">
-        <div class="modal-dialog" role="document">
+        <div class="modal-dialog modal-lg" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title h4" id="mySmallModalLabel">{{translate('Update_Delivery_Informatrion')}}</h5>
@@ -760,52 +814,74 @@
                         <input type="hidden" name="user_id" value="{{$order->user_id}}">
                         <input type="hidden" name="order_id" value="{{$order->id}}">
                         <div class="modal-body">
-                            <div class="form-group">
-                                <label>{{translate('Type')}}</label>
-                                <input type="text" name="address_type" class="form-control"
-                                       placeholder="{{translate('EX : Home')}}" value="{{ $address['address_type'] ?? '' }}" required>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>{{translate('Type')}}</label>
+                                        <input type="text" name="address_type" class="form-control"
+                                               placeholder="{{translate('EX : Home')}}" value="{{ $address['address_type'] ?? '' }}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="input-label" for="">{{ translate('contact_person_name') }}
+                                            <span class="input-label-secondary text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="contact_person_name"
+                                               placeholder="{{translate('EX : Jhon Doe')}}" value="{{ $address['contact_person_name'] ?? '' }}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="input-label" for="">{{ translate('Contact Number') }}
+                                            <span class="input-label-secondary text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="contact_person_number"
+                                               placeholder="{{translate('EX : 01888888888')}}" value="{{ $address['contact_person_number']?? '' }}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>{{translate('floor')}}</label>
+                                        <input type="text" class="form-control" name="floor"
+                                               placeholder="{{translate('EX : 5')}}" value="{{ $address['floor'] ?? '' }}" >
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>{{translate('house')}}</label>
+                                        <input type="text" class="form-control" name="house"
+                                               placeholder="{{translate('EX : 21/B')}}" value="{{ $address['house'] ?? '' }}" >
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="form-group">
+                                        <label>{{translate('road')}}</label>
+                                        <input type="text" class="form-control" name="road"
+                                               placeholder="{{translate('EX : Baker Street')}}" value="{{ $address['road'] ?? '' }}" >
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="input-label" for="">{{ translate('latitude') }}<span
+                                                class="input-label-secondary text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="latitude"
+                                               placeholder="{{translate('EX : 23.796584198263794')}}" value="{{ $address['latitude'] ?? '' }}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="form-group">
+                                        <label class="input-label" for="">{{ translate('longitude') }}<span
+                                                class="input-label-secondary text-danger">*</span></label>
+                                        <input type="text" class="form-control" name="longitude"
+                                               placeholder="{{translate('EX : 23.796584198263794')}}" value="{{ $address['longitude'] ?? '' }}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-12">
+                                    <div class="form-group">
+                                        <label>{{translate('Address')}}</label>
+                                        <textarea class="form-control" name="address" cols="30" rows="3" placeholder="{{translate('EX : Dhaka,_Bangladesh')}}" required>{{ $address['address'] ?? '' }}</textarea>
+                                    </div>
+                                </div>
                             </div>
-                            <div class="form-group">
-                                <label>{{translate('Name')}}</label>
-                                <input type="text" class="form-control" name="contact_person_name"
-                                       placeholder="{{translate('EX : Jhon Doe')}}" value="{{ $address['contact_person_name'] ?? '' }}" required>
-                            </div>
-                            <div class="form-group">
-                                <label>{{translate('Contact_Number')}}</label>
-                                <input type="text" class="form-control" name="contact_person_number"
-                                       placeholder="{{translate('EX : 01888888888')}}" value="{{ $address['contact_person_number']?? '' }}" required>
-                            </div>
-                            <div class="form-group">
-                                <label>{{translate('floor')}}</label>
-                                <input type="text" class="form-control" name="floor"
-                                       placeholder="{{translate('EX : 5')}}" value="{{ $address['floor'] ?? '' }}" >
-                            </div>
-                            <div class="form-group">
-                                <label>{{translate('house')}}</label>
-                                <input type="text" class="form-control" name="house"
-                                       placeholder="{{translate('EX : 21/B')}}" value="{{ $address['house'] ?? '' }}" >
-                            </div>
-                            <div class="form-group">
-                                <label>{{translate('road')}}</label>
-                                <input type="text" class="form-control" name="road"
-                                       placeholder="{{translate('EX : Baker Street')}}" value="{{ $address['road'] ?? '' }}" >
-                            </div>
-                            <div class="form-group">
-                                <label>{{translate('Address')}}</label>
-                                <input type="text" class="form-control" name="address"
-                                       placeholder="{{translate('EX : Dhaka,_Bangladesh')}}" value="{{ $address['address'] ?? '' }}" required>
-                            </div>
-                            <div class="form-group">
-                                <label>{{translate('latitude')}}</label>
-                                <input type="text" class="form-control" name="latitude"
-                                       placeholder="{{translate('EX : 23.796584198263794')}}" value="{{ $address['latitude'] ?? '' }}" required>
-                            </div>
-                            <div class="form-group">
-                                <label>{{translate('longitude')}}</label>
-                                <input type="text" class="form-control" name="longitude"
-                                       placeholder="{{translate('EX : 23.796584198263794')}}" value="{{ $address['longitude'] ?? '' }}" required>
-                            </div>
-
                             <div class="d-flex justify-content-end">
                                 <button class="btn btn-primary">{{translate('submit')}}</button>
                             </div>

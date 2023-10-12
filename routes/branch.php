@@ -42,6 +42,10 @@ Route::group(['namespace' => 'Branch', 'as' => 'branch.'], function () {
             Route::get('clear', 'POSController@clear_session_data')->name('clear');
             Route::post('customer-store', 'POSController@customer_store')->name('customer-store');
             Route::any('store-keys', 'POSController@store_keys')->name('store-keys');
+            Route::post('session-destroy', 'POSController@session_destroy')->name('session-destroy');
+            Route::post('add-delivery-address', 'POSController@addDeliveryInfo')->name('add-delivery-address');
+            Route::get('get-distance', 'POSController@get_distance')->name('get-distance');
+            Route::post('order_type/store', 'POSController@order_type_store')->name('order_type.store');
 
         });
 

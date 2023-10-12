@@ -5,7 +5,6 @@
         @php(array_push($array,$conv->user_id))
         @php($user=\App\User::find($conv->user_id))
         @php($unchecked=\App\Model\Conversation::where(['user_id'=>$conv->user_id,'checked'=>0])->count())
-        @dump($conv->user_id)
         <div
             class="sidebar_primary_div d-flex border-bottom pb-2 pt-2 pl-md-1 pl-0 justify-content-between align-items-center customer-list {{$unchecked!=0?'conv-active':''}}"
             onclick="viewConvs('{{route('admin.message.view',[$conv->user_id])}}','customer-{{$conv->user_id}}')"

@@ -2,86 +2,93 @@
 
 namespace App\Http\Controllers;
 
-use App\CentralLogics\Helpers;
-use Brian2694\Toastr\Facades\Toastr;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Http\RedirectResponse;
+use App\Models\PaymentRequest;
+use App\Models\User;
+use App\Traits\Processor;
 use Illuminate\Http\Request;
-
-use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Config;
-use Illuminate\Support\Facades\Redirect;
-use Paystack;
+use Illuminate\Support\Facades\Validator;
+use Unicodeveloper\Paystack\Facades\Paystack;
 
 class PaystackController extends Controller
 {
-    public function __construct()
+    use Processor;
+
+    private PaymentRequest $payment;
+    private $user;
+
+    public function __construct(PaymentRequest $payment, User $user)
     {
-        //configuration initialization
-        $paystack = Helpers::get_business_settings('paystack');
-        if ($paystack) {
+        $config = $this->payment_config('paystack', 'payment_config');
+        $values = false;
+        if (!is_null($config) && $config->mode == 'live') {
+            $values = json_decode($config->live_values);
+        } elseif (!is_null($config) && $config->mode == 'test') {
+            $values = json_decode($config->test_values);
+        }
+
+        if ($values) {
             $config = array(
-                'publicKey' => env('PAYSTACK_PUBLIC_KEY', $paystack['publicKey']),
-                'secretKey' => env('PAYSTACK_SECRET_KEY', $paystack['secretKey']),
-                'paymentUrl' => env('PAYSTACK_PAYMENT_URL', $paystack['paymentUrl']),
-                'merchantEmail' => env('MERCHANT_EMAIL', $paystack['merchantEmail']),
+                'publicKey' => env('PAYSTACK_PUBLIC_KEY', $values->public_key),
+                'secretKey' => env('PAYSTACK_SECRET_KEY', $values->secret_key),
+                'paymentUrl' => env('PAYSTACK_PAYMENT_URL', 'https://api.paystack.co'),
+                'merchantEmail' => env('MERCHANT_EMAIL', $values->merchant_email),
             );
             Config::set('paystack', $config);
         }
+
+        $this->payment = $payment;
+        $this->user = $user;
     }
 
-    /**
-     * @param Request $request
-     * @return RedirectResponse
-     */
-    public function redirectToGateway(Request $request): RedirectResponse
+    public function index(Request $request)
     {
-        \session()->put('callback', $request['callback']);
-        try {
-            return Paystack::getAuthorizationUrl()->redirectNow();
+        $validator = Validator::make($request->all(), [
+            'payment_id' => 'required|uuid'
+        ]);
 
-        } catch (\Exception $e) {
-            Toastr::error('Your currency is not supported by Paystack.');
-            return Redirect::back()->withErrors(['error' => 'Failed']);
+        if ($validator->fails()) {
+            return response()->json($this->response_formatter(GATEWAYS_DEFAULT_400, null, $this->error_processor($validator)), 400);
         }
+
+        $data = $this->payment::where(['id' => $request['payment_id']])->where(['is_paid' => 0])->first();
+        if (!isset($data)) {
+            return response()->json($this->response_formatter(GATEWAYS_DEFAULT_204), 200);
+        }
+
+        $payer = json_decode($data['payer_information']);
+
+        $reference = Paystack::genTranxRef();
+
+        return view('payment-gateway.paystack', compact('data', 'payer', 'reference'));
     }
 
-    /**
-     * @return Redirector|RedirectResponse|Application
-     */
-    public function handleGatewayCallback(): Redirector|RedirectResponse|Application
+    public function redirectToGateway(Request $request)
     {
-        $callback = session('callback');
+        return Paystack::getAuthorizationUrl()->redirectNow();
+    }
 
+    public function handleGatewayCallback(Request $request)
+    {
         $paymentDetails = Paystack::getPaymentData();
-
-        //token string generate
-        $transaction_reference = $paymentDetails['data']['reference'];
-        $token_string = 'payment_method=paystack&&transaction_reference=' . $transaction_reference;
-
         if ($paymentDetails['status'] == true) {
-            //success
-            if ($callback != null) {
-                return redirect($callback . '/success' . '?token=' . base64_encode($token_string));
-            } else {
-                return \redirect()->route('payment-success', ['token' => base64_encode($token_string)]);
+            $this->payment::where(['attribute_id' => $paymentDetails['data']['orderID']])->update([
+                'payment_method' => 'paystack',
+                'is_paid' => 1,
+                'transaction_id' => $request['trxref'],
+            ]);
+            $data = $this->payment::where(['attribute_id' => $paymentDetails['data']['orderID']])->first();
+            if (isset($data) && function_exists($data->success_hook)) {
+                call_user_func($data->success_hook, $data);
             }
-
-        } else {
-            //fail
-            if ($callback != null) {
-                return redirect($callback . '/fail' . '?token=' . base64_encode($token_string));
-            } else {
-                return \redirect()->route('payment-fail', ['token' => base64_encode($token_string)]);
-            }
+            return $this->payment_response($data, 'success');
         }
+
+        $payment_data = $this->payment::where(['attribute_id' => $paymentDetails['data']['orderID']])->first();
+        if (isset($payment_data) && function_exists($payment_data->failure_hook)) {
+            call_user_func($payment_data->failure_hook, $payment_data);
+        }
+        return $this->payment_response($payment_data, 'fail');
     }
 
-    /**
-     * @return mixed
-     */
-    public static function generate_transaction_Referance(): mixed
-    {
-        return Paystack::genTranxRef();
-    }
 }

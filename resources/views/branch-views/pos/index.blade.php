@@ -89,21 +89,67 @@
                                     </button>
                                 </div>
 
-                                <div class="form-group d-flex flex-wrap flex-sm-nowrap gap-2">
-                                    <select onchange="store_key('table_id',this.value)" id='table' name="table_id"  class="table-data-selector form-control form-ellipsis">
-                                        <option selected disabled>{{translate('Select Table')}}</option>
-                                    @foreach($tables as $table)
-                                            <option value="{{$table['id']}}" {{ $table['id'] == session('table_id') ? 'selected' : ''}}>{{translate('Table')}} - {{$table['number']}}</option>
-                                        @endforeach
-                                    </select>
+                                <div class="form-group">
+                                    <label class="input-label font-weight-semibold fz-16 text-dark">{{translate('Select Order Type')}}</label>
+                                    <div class="">
+                                        <!-- Custom Radio -->
+                                        <div class="form-control d-flex flex-column-3">
+                                            <label class="custom-radio d-flex gap-2 align-items-center m-0">
+                                                <input type="radio" class="" name="order_type" onclick="select_order_type('take_away')" {{ !session()->has('order_type') || session()->get('order_type') == 'take_away' ? 'checked' : '' }}>
+                                                <span class="media align-items-center mb-0">
+                                                    <span class="media-body">{{translate('Take Away')}}</span>
+                                                </span>
+                                            </label>
+
+                                            <label class="custom-radio d-flex gap-2 align-items-center m-0">
+                                                <input type="radio" class="" name="order_type" onclick="select_order_type('dine_in')" {{ session()->has('order_type') && session()->get('order_type') == 'dine_in' ? 'checked' : '' }}>
+                                                <span class="media align-items-center mb-0">
+                                                    <span class="media-body">{{translate('Dine-In')}}</span>
+                                                    </span>
+                                            </label>
+
+                                            <label class="custom-radio d-flex gap-2 align-items-center m-0">
+                                                <input type="radio" class="" name="order_type" onclick="select_order_type('home_delivery')" {{ session()->has('order_type') && session()->get('order_type') == 'home_delivery' ? 'checked' : '' }}>
+                                                <span class="media align-items-center mb-0">
+                                                    <span class="media-body">{{translate('Home Delivery')}}</span>
+                                                </span>
+                                            </label>
+                                        </div>
+                                        <!-- End Custom Radio -->
+                                    </div>
                                 </div>
 
-                                <div class="form-group d-flex flex-wrap flex-sm-nowrap gap-2">
-                                    <input type="number" value="{{ session('people_number') }}" name="number_of_people"
-                                           oninput="this.value = this.value.replace(/[^\d]/g, '')"
-                                           onkeyup="store_key('people_number',this.value)" id="number_of_people"
-                                           class="form-control" id="password" min="1" max="99"
-                                           placeholder="{{translate('Number Of People')}}">
+                                <div class="d-none" id="dine_in_section">
+                                    <div class="form-group d-flex flex-wrap flex-sm-nowrap gap-2">
+                                        <select onchange="store_key('table_id',this.value)" id='table' name="table_id"  class="table-data-selector form-control form-ellipsis">
+                                            <option selected disabled>{{translate('Select Table')}}</option>
+                                            @foreach($tables as $table)
+                                                <option value="{{$table['id']}}" {{ $table['id'] == session('table_id') ? 'selected' : ''}}>{{translate('Table')}} - {{$table['number']}}</option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group d-flex flex-wrap flex-sm-nowrap gap-2">
+                                        <input type="number" value="{{ session('people_number') }}" name="number_of_people"
+                                               oninput="this.value = this.value.replace(/[^\d]/g, '')"
+                                               onkeyup="store_key('people_number',this.value)" id="number_of_people"
+                                               class="form-control" id="password" min="1" max="99"
+                                               placeholder="{{translate('Number Of People')}}">
+                                    </div>
+                                </div>
+
+                                <div class="form-group d-none" id="home_delivery_section">
+                                    <div class="d-flex justify-content-between">
+                                        <label for="" class="font-weight-semibold fz-16 text-dark">{{translate('Delivery Information')}}
+                                            <small>({{ translate('Home Delivery') }})</small>
+                                        </label>
+                                        <span class="edit-btn cursor-pointer" id="delivery_address" data-toggle="modal"
+                                              data-target="#AddressModal"><i class="tio-edit"></i>
+                                        </span>
+                                    </div>
+                                    <div class="pos--delivery-options-info d-flex flex-wrap" id="del-add">
+                                        @include('branch-views.pos._address')
+                                    </div>
                                 </div>
 
                                 <div class='w-100' id="cart">
@@ -217,6 +263,96 @@
             </div>
         </div>
         @endif
+
+    <div class="modal fade" id="AddressModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-light border-bottom py-3">
+                    <h5 class="modal-title flex-grow-1 text-center">{{ translate('Delivery Information') }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+                    <?php
+                    if(session()->has('address')) {
+                        $old = session()->get('address');
+                    }else {
+                        $old = null;
+                    }
+                    ?>
+                    <form id='delivery_address_store'>
+                        @csrf
+
+                        <div class="row g-2" id="delivery_address">
+                            <div class="col-md-6">
+                                <label class="input-label" for="">{{ translate('contact_person_name') }}
+                                    <span class="input-label-secondary text-danger">*</span></label>
+                                <input type="text" class="form-control" name="contact_person_name"
+                                       value="{{ $old ? $old['contact_person_name'] : '' }}" placeholder="{{ translate('Ex :') }} Jhon" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="input-label" for="">{{ translate('Contact Number') }}
+                                    <span class="input-label-secondary text-danger">*</span></label>
+                                <input type="tel" class="form-control" name="contact_person_number"
+                                       value="{{ $old ? $old['contact_person_number'] : '' }}"  placeholder="{{ translate('Ex :') }} +3264124565" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="input-label" for="">{{ translate('Road') }}</label>
+                                <input type="text" class="form-control" name="road" value="{{ $old ? $old['road'] : '' }}"  placeholder="{{ translate('Ex :') }} 4th">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="input-label" for="">{{ translate('House') }}</label>
+                                <input type="text" class="form-control" name="house" value="{{ $old ? $old['house'] : '' }}" placeholder="{{ translate('Ex :') }} 45/C">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="input-label" for="">{{ translate('Floor') }}</label>
+                                <input type="text" class="form-control" name="floor" value="{{ $old ? $old['floor'] : '' }}"  placeholder="{{ translate('Ex :') }} 1A">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="input-label" for="">{{ translate('longitude') }}<span
+                                        class="input-label-secondary text-danger">*</span></label>
+                                <input type="text" class="form-control" id="longitude" name="longitude"
+                                       value="{{ $old ? $old['longitude'] : '' }}" readonly required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="input-label" for="">{{ translate('latitude') }}<span
+                                        class="input-label-secondary text-danger">*</span></label>
+                                <input type="text" class="form-control" id="latitude" name="latitude"
+                                       value="{{ $old ? $old['latitude'] : '' }}" readonly required>
+                            </div>
+                            <div class="col-md-12">
+                                <label class="input-label" for="">{{ translate('address') }}</label>
+                                <textarea name="address" id="address" class="form-control" cols="30" rows="3" placeholder="{{ translate('Ex :') }} address" required>{{ $old ? $old['address'] : '' }}</textarea>
+                            </div>
+                            <div class="col-12">
+                                <div class="d-flex justify-content-between">
+                                        <span class="text-primary">
+                                            {{ translate('* pin the address in the map to calculate delivery fee') }}
+                                        </span>
+                                </div>
+                                <div id="location_map_div">
+                                    <input id="pac-input" class="controls rounded initial-8"
+                                           title="{{ translate('search_your_location_here') }}" type="text"
+                                           placeholder="{{ translate('search_here') }}" />
+                                    <div id="location_map_canvas" class="overflow-hidden rounded" style="height: 100%"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-12 mt-2">
+                            <div class="btn--container justify-content-end">
+                                <button class="btn btn-sm btn-primary w-100" type="button" onclick="deliveryAdressStore()" data-dismiss="modal">
+                                    {{  translate('Update') }} {{ translate('Delivery address') }}
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
 {{--    </main>--}}
 @endsection
 
@@ -232,6 +368,8 @@
 <script src="{{asset('assets/admin')}}/js/theme.min.js"></script>
 <script src="{{asset('assets/admin')}}/js/sweet_alert.js"></script>
 <script src="{{asset('assets/admin')}}/js/toastr.js"></script>
+<script src="https://maps.googleapis.com/maps/api/js?key={{ \App\Model\BusinessSetting::where('key', 'map_api_client_key')->first()?->value }}&libraries=places&v=3.51"></script>
+
 {{--{!! Toastr::message() !!}--}}
 
 @if ($errors->any())
@@ -683,6 +821,181 @@
         }
         return true;
     });
+
+    $(document).ready(function() {
+        var orderType = {!! json_encode(session('order_type')) !!};
+
+        if (orderType === 'dine_in') {
+            $('#dine_in_section').removeClass('d-none');
+        } else if (orderType === 'home_delivery') {
+            $('#home_delivery_section').removeClass('d-none');
+            $('#dine_in_section').addClass('d-none');
+        } else {
+            $('#home_delivery_section').addClass('d-none');
+            $('#dine_in_section').addClass('d-none');
+        }
+    });
+
+    function select_order_type(order_type) {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': "{{csrf_token()}}"
+            }
+        });
+        $.post({
+            url: '{{route('branch.pos.order_type.store')}}',
+            data: {
+                order_type:order_type,
+            },
+            success: function (data) {
+                //console.log(data);
+                updateCart();
+            },
+        });
+
+        if (order_type == 'dine_in') {
+            $('#dine_in_section').removeClass('d-none');
+            $('#home_delivery_section').addClass('d-none')
+        } else if(order_type == 'home_delivery') {
+            $('#home_delivery_section').removeClass('d-none');
+            $('#dine_in_section').addClass('d-none');
+        }else{
+            $('#home_delivery_section').addClass('d-none')
+            $('#dine_in_section').addClass('d-none');
+        }
+    }
+
+    $( document ).ready(function() {
+        function initAutocomplete() {
+            var myLatLng = {
+
+                lat: 23.811842872190343,
+                lng: 90.356331
+            };
+            const map = new google.maps.Map(document.getElementById("location_map_canvas"), {
+                center: {
+                    lat: 23.811842872190343,
+                    lng: 90.356331
+                },
+                zoom: 13,
+                mapTypeId: "roadmap",
+            });
+
+            var marker = new google.maps.Marker({
+                position: myLatLng,
+                map: map,
+            });
+
+            marker.setMap(map);
+            var geocoder = geocoder = new google.maps.Geocoder();
+            google.maps.event.addListener(map, 'click', function(mapsMouseEvent) {
+                var coordinates = JSON.stringify(mapsMouseEvent.latLng.toJSON(), null, 2);
+                var coordinates = JSON.parse(coordinates);
+                var latlng = new google.maps.LatLng(coordinates['lat'], coordinates['lng']);
+                marker.setPosition(latlng);
+                map.panTo(latlng);
+
+                document.getElementById('latitude').value = coordinates['lat'];
+                document.getElementById('longitude').value = coordinates['lng'];
+
+                geocoder.geocode({
+                    'latLng': latlng
+                }, function(results, status) {
+                    if (status == google.maps.GeocoderStatus.OK) {
+                        if (results[1]) {
+                            document.getElementById('address').value = results[1].formatted_address;
+                        }
+                    }
+                });
+            });
+            // Create the search box and link it to the UI element.
+            const input = document.getElementById("pac-input");
+            const searchBox = new google.maps.places.SearchBox(input);
+            map.controls[google.maps.ControlPosition.TOP_CENTER].push(input);
+            // Bias the SearchBox results towards current map's viewport.
+            map.addListener("bounds_changed", () => {
+                searchBox.setBounds(map.getBounds());
+            });
+            let markers = [];
+            // Listen for the event fired when the user selects a prediction and retrieve
+            // more details for that place.
+            searchBox.addListener("places_changed", () => {
+                const places = searchBox.getPlaces();
+
+                if (places.length == 0) {
+                    return;
+                }
+                // Clear out the old markers.
+                markers.forEach((marker) => {
+                    marker.setMap(null);
+                });
+                markers = [];
+                // For each place, get the icon, name and location.
+                const bounds = new google.maps.LatLngBounds();
+                places.forEach((place) => {
+                    if (!place.geometry || !place.geometry.location) {
+                        console.log("Returned place contains no geometry");
+                        return;
+                    }
+                    var mrkr = new google.maps.Marker({
+                        map,
+                        title: place.name,
+                        position: place.geometry.location,
+                    });
+                    google.maps.event.addListener(mrkr, "click", function(event) {
+                        document.getElementById('latitude').value = this.position.lat();
+                        document.getElementById('longitude').value = this.position.lng();
+
+                    });
+
+                    markers.push(mrkr);
+
+                    if (place.geometry.viewport) {
+                        // Only geocodes have viewport.
+                        bounds.union(place.geometry.viewport);
+                    } else {
+                        bounds.extend(place.geometry.location);
+                    }
+                });
+                map.fitBounds(bounds);
+            });
+        };
+        initAutocomplete();
+    });
+
+    function deliveryAdressStore(form_id = 'delivery_address_store') {
+        $.ajaxSetup({
+            headers: {
+                'X-CSRF-TOKEN': $('meta[name="_token"]').attr('content')
+            }
+        });
+        $.post({
+            url: '{{ route('branch.pos.add-delivery-address') }}',
+            data: $('#' + form_id).serializeArray(),
+            beforeSend: function() {
+                $('#loading').show();
+            },
+            success: function(data) {
+                console.log(data.errors);
+                if (data.errors) {
+                    for (var i = 0; i < data.errors.length; i++) {
+                        toastr.error(data.errors[i].message, {
+                            CloseButton: true,
+                            ProgressBar: true
+                        });
+                    }
+                } else {
+                    $('#del-add').empty().html(data.view);
+                }
+                updateCart();
+                $('.call-when-done').click();
+            },
+            complete: function() {
+                $('#loading').hide();
+            }
+        });
+    }
+
 
 </script>
 <!-- IE Support -->

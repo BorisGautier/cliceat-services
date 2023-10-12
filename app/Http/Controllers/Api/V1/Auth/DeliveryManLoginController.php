@@ -4,11 +4,13 @@ namespace App\Http\Controllers\Api\V1\Auth;
 
 use App\CentralLogics\Helpers;
 use App\Http\Controllers\Controller;
+use App\Mail\DMSelfRegistration;
 use App\Model\DeliveryMan;
 use Carbon\CarbonInterval;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
 
@@ -77,7 +79,20 @@ class DeliveryManLoginController extends Controller
         $dm->is_active = 0;
         $dm->password = bcrypt($request->password);
         $dm->application_status= 'pending';
+        $dm->language_code = $request->header('X-localization') ?? 'en';
         $dm->save();
+
+        try{
+            //send email
+            $emailServices = Helpers::get_business_settings('mail_config');
+            $mail_status = Helpers::get_business_settings('registration_mail_status_dm');
+            if(isset($emailServices['status']) && $emailServices['status'] == 1 && $mail_status == 1){
+                Mail::to($dm->email)->send(new DMSelfRegistration('pending', $dm->f_name.' '.$dm->l_name, $dm->language_code));
+            }
+
+        }catch(\Exception $ex){
+            info($ex);
+        }
 
         return response()->json(['message' => translate('deliveryman_added_successfully')], 200);
     }

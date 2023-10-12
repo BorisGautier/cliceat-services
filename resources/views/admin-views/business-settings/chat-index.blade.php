@@ -27,8 +27,7 @@
                 <div class="card">
                     @php($config=\App\CentralLogics\Helpers::get_business_settings('whatsapp'))
                     @if($config)
-                        <form
-                            action="{{env('APP_MODE')!='demo'?route('admin.business-settings.web-app.third-party.chat-update',['whatsapp']):'javascript:'}}"
+                        <form action="{{env('APP_MODE')!='demo'?route('admin.business-settings.web-app.third-party.chat-update',['whatsapp']):'javascript:'}}"
                             method="post">
                             <div class="card-body">
                                 <div class="d-flex justify-content-between">
@@ -39,9 +38,6 @@
                                         <span class="switcher_control"></span>
                                     </label>
                                 </div>
-{{--                                <center class="mb-4">--}}
-{{--                                    <img width="185" class="avatar-img" src="{{asset('assets/admin/img/icons/ssl.png')}}" alt="">--}}
-{{--                                </center>--}}
 
                                 @csrf
                                 <div class="form-group">
@@ -52,7 +48,8 @@
                                 <div class="btn--container">
                                     <button type="{{env('APP_MODE')!='demo'?'submit':'button'}}"
                                             onclick="{{env('APP_MODE')!='demo'?'':'call_demo()'}}"
-                                            class="btn btn-primary mb-2">{{translate('save')}}</button>
+                                            class="btn btn-primary mb-2">{{translate('save')}}
+                                    </button>
                                 </div>
 
 

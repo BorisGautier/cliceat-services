@@ -26,16 +26,13 @@
             <div class="col-12">
                 <div class="card">
                     <div class="card-body">
-                        <form
-                            action="{{route('admin.business-settings.page-setup.cancellation_page_update')}}" id="tnc-form" method="post">
+                        <form action="{{route('admin.business-settings.page-setup.cancellation_page_update')}}" id="tnc-form" method="post">
                             @csrf
-
                             <div class="d-flex gap-3 align-items-center mb-3">
                                 <div class="text-dark font-weight-bold">{{ translate('Check Status') }}</div>
                                 <label class="switcher">
                                     <input type="checkbox" class="switcher_input" name="status"
-                                        value="1" {{ json_decode($data['value'],true)['status']==1?'checked':''}}
-                                        >
+                                        value="1" {{ json_decode($data['value'],true)['status']==1?'checked':''}}>
                                     <span class="switcher_control"></span>
                                 </label>
                             </div>
@@ -54,7 +51,7 @@
                                 <button type="reset" class="btn btn-secondary">{{translate('reset')}}</button>
                                 <button type="{{env('APP_MODE')!='demo'?'submit':'button'}}"
                                         onclick="{{env('APP_MODE')!='demo'?'':'call_demo()'}}"
-                                        class="btn btn-primary">{{\App\CentralLogics\translate('save')}}</button>
+                                        class="btn btn-primary">{{translate('save')}}</button>
                             </div>
                         </form>
                     </div>

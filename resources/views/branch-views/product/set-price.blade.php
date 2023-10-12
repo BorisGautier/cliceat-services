@@ -35,7 +35,7 @@
             ?>
 
             <div class="row">
-                <div class="col-lg-6">
+                <div class="col-md-6">
                     <div class="card">
                         <div class="card-header">
                             <h4 class="mb-0 d-flex gap-2 align-items-center">
@@ -48,6 +48,57 @@
                                 <div class="form-group">
                                     <label class="input-label">{{translate('name')}} (EN)</label>
                                     <input type="text" name="" value="{{$product['name']}}" class="form-control" placeholder="{{translate('Product Name')}}" readonly required>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            <h4 class="mb-0 d-flex gap-2 align-items-center">
+                                <i class="tio-dollar"></i>
+                                {{translate('Stock Information')}}
+                            </h4>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-sm-6">
+                                    <div class="form-group">
+                                        <label class="input-label">{{translate('Stock Type')}}
+                                            <i class="tio-info-outined"
+                                               data-toggle="tooltip"
+                                               data-placement="top"
+                                               title="{{ translate('When this field is active  delivery men can register themself using the delivery man app.') }}">
+                                            </i>
+                                        </label>
+                                        <select name="stock_type" class="form-control js-select2-custom" id="stock_type">
+                                            @if($product->sub_branch_product)
+                                                <option value="unlimited" {{ $product->sub_branch_product?->stock_type == 'unlimited' ? 'selected' : '' }}>{{translate('unlimited')}}</option>
+                                                <option value="daily" {{ $product->sub_branch_product?->stock_type == 'daily' ? 'selected' : '' }}>{{translate('daily')}}</option>
+                                                <option value="fixed" {{ $product->sub_branch_product?->stock_type == 'fixed' ? 'selected' : '' }}>{{translate('Fixed')}}</option>
+                                            @else
+                                                <option value="unlimited" {{ $main_branch_product->stock_type == 'unlimited' ? 'selected' : '' }}>{{translate('unlimited')}}</option>
+                                                <option value="daily" {{ $main_branch_product->stock_type == 'daily' ? 'selected' : '' }}>{{translate('daily')}}</option>
+                                                <option value="fixed" {{ $main_branch_product->stock_type == 'fixed' ? 'selected' : '' }}>{{translate('Fixed')}}</option>
+                                            @endif
+
+                                        </select>
+                                    </div>
+                                </div>
+                                <?php
+                                if ($product->sub_branch_product){
+                                    $stock = $product->sub_branch_product->stock;
+                                }else{
+                                    $stock = $main_branch_product->stock;
+                                }
+                                ?>
+                                <div class="col-sm-6 d-none" id="product_stock_div">
+                                    <div class="form-group">
+                                        <label class="input-label">{{translate('Product Stock')}}</label>
+                                        <input id="product_stock" type="number" min="1" name="product_stock" class="form-control"
+                                               value="{{ $stock}}" placeholder="{{translate('Ex : 10')}}">
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -198,6 +249,26 @@
                     }
                 }
             });
+        });
+
+        @if($product->sub_branch_product)
+            @if($product->sub_branch_product?->stock_type == 'daily' || $product->sub_branch_product?->stock_type == 'fixed')
+            $("#product_stock_div").removeClass('d-none')
+            @endif
+        @else
+            @if($main_branch_product->stock_type == 'daily' || $main_branch_product->stock_type == 'fixed')
+            $("#product_stock_div").removeClass('d-none')
+        @endif
+        @endif
+
+
+        $("#stock_type").change(function(){
+            if(this.value === 'daily' || this.value === 'fixed') {
+                $("#product_stock_div").removeClass('d-none')
+            }
+            else {
+                $("#product_stock_div").addClass('d-none')
+            }
         });
     </script>
 @endpush

@@ -10,6 +10,10 @@ class Table extends Model
 {
     protected $table = 'tables';
 
+    protected $casts = [
+        'number' => 'integer'
+    ];
+
     public function branch(): BelongsTo
     {
         return $this->belongsTo(Branch::class, 'branch_id', 'id');

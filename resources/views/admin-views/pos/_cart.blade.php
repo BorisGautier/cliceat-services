@@ -107,6 +107,23 @@
         if($extra_discount) {
             $total -= $extra_discount;
         }
+
+        $delivery_charge = 0;
+        if (session()->get('order_type') == 'home_delivery'){
+            $distance = 0;
+            if (session()->has('address')){
+                $address = session()->get('address');
+                $distance = $address['distance'];
+            }
+            $delivery_type = \App\CentralLogics\Helpers::get_business_settings('delivery_management');
+            if ($delivery_type['status'] == 1){
+                $delivery_charge = \App\CentralLogics\Helpers::get_delivery_charge($distance);
+            }else{
+                $delivery_charge = \App\CentralLogics\Helpers::get_business_settings('delivery_charge');
+            }
+        }else{
+            $delivery_charge = 0;
+        }
     ?>
     <div class="pos-data-table p-3">
         <dl class="row">
@@ -130,8 +147,11 @@
             <dt  class="col-6">{{translate('VAT/TAX:')}} : </dt>
             <dd class="col-6 text-right">{{ \App\CentralLogics\Helpers::set_symbol(round($total_tax + $addon_total_tax,2)) }}</dd>
 
+            <dt  class="col-6">{{translate('Delivery Charge')}} :</dt>
+            <dd class="col-6 text-right"> {{ \App\CentralLogics\Helpers::set_symbol(round($delivery_charge,2)) }}</dd>
+
             <dt  class="col-6 border-top font-weight-bold pt-2">{{translate('total')}} : </dt>
-            <dd class="col-6 text-right border-top font-weight-bold pt-2">{{ \App\CentralLogics\Helpers::set_symbol(round($total+$total_tax+$addon_total_tax, 2)) }}</dd>
+            <dd class="col-6 text-right border-top font-weight-bold pt-2">{{ \App\CentralLogics\Helpers::set_symbol(round($total+$total_tax+$addon_total_tax+$delivery_charge, 2)) }}</dd>
         </dl>
 
         <form action="{{route('admin.pos.order')}}" id='order_place' method="post">
@@ -144,11 +164,11 @@
                         <input type="radio" id="cash" value="cash" name="type" hidden="" checked="">
                         <label for="cash" class="btn btn-bordered px-4 mb-0">{{translate('Cash')}}</label>
                     </li>
-                    <li>
+                    <li id="card_payment_li" style="display: {{ session('order_type') == 'home_delivery' ?  'none' : '' }}">
                         <input type="radio" value="card" id="card" name="type" hidden="">
                         <label for="card" class="btn btn-bordered px-4 mb-0">{{translate('Card')}}</label>
                     </li>
-                    <li id="pay_after_eating_li" style="display: {{ session('table_id') ?  '' : 'none' }}">
+                    <li id="pay_after_eating_li" style="display: {{ session('order_type') == 'dine_in' ?  'block' : 'none' }}">
                         <input type="radio" value="pay_after_eating" id="pay_after_eating" name="type" hidden="">
                         <label for="pay_after_eating" class="btn btn-bordered px-4 mb-0">{{translate('pay_after_eating')}}</label>
                     </li>

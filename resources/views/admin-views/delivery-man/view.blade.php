@@ -207,7 +207,7 @@
                             </td>
                             {{-- <td>
                                 @foreach(json_decode($review['attachment'],true) as $attachment)
-                                    <img width="100" onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'" src="{{asset('storage')}}/{{$attachment}}">
+                                    <img width="100" onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'" src="{{asset('storage/app/public')}}/{{$attachment}}">
                                 @endforeach
                             </td> --}}
                             <td>

@@ -10,9 +10,11 @@ use App\Model\BusinessSetting;
 use App\Model\EmailVerifications;
 use App\Model\PhoneVerification;
 use App\User;
+use Firebase\JWT\JWT;
 use GuzzleHttp\Exception\GuzzleException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
@@ -20,6 +22,7 @@ use Illuminate\Http\JsonResponse;
 use GuzzleHttp\Client;
 use Illuminate\Support\Carbon;
 use Carbon\CarbonInterval;
+use App\Traits\SmsGateway;
 
 class CustomerAuthController extends Controller
 {
@@ -73,7 +76,17 @@ class CustomerAuthController extends Controller
                 'updated_at' => now(),
             ]);
 
-            $response = SMS_module::send($request['phone'], $token);
+            $published_status = 0;
+            $payment_published_status = config('get_payment_publish_status');
+            if (isset($payment_published_status[0]['is_published'])) {
+                $published_status = $payment_published_status[0]['is_published'];
+            }
+            if($published_status == 1){
+                $response = SmsGateway::send($request['phone'], $token);
+            }else{
+                $response = SMS_module::send($request['phone'], $token);
+            }
+
             return response()->json([
                 'message' => $response,
                 'token' => 'active'
@@ -232,9 +245,12 @@ class CustomerAuthController extends Controller
             ]);
 
             try {
+                $lang_code = $request->header('X-localization') ?? 'en';
                 $emailServices = Helpers::get_business_settings('mail_config');
-                if (isset($emailServices['status']) && $emailServices['status'] == 1) {
-                    Mail::to($request['email'])->send(new EmailVerification($token));
+                $mail_status = Helpers::get_business_settings('registration_otp_mail_status_user');
+
+                if(isset($emailServices['status']) && $emailServices['status'] == 1 && $mail_status == 1){
+                    Mail::to($request['email'])->send(new EmailVerification($token, $lang_code ));
                 }
 
             } catch (\Exception $exception) {
@@ -393,6 +409,8 @@ class CustomerAuthController extends Controller
             'temporary_token' => $temporary_token,
             'refer_code' => Helpers::generate_referer_code(),
             'refer_by' => $refer_user->id ?? null,
+            'language_code' => $request->header('X-localization') ?? 'en',
+
         ]);
 
         $phone_verification = Helpers::get_business_settings('phone_verification');
@@ -555,7 +573,7 @@ class CustomerAuthController extends Controller
             'token' => 'required',
             'unique_id' => 'required',
             'email' => 'required',
-            'medium' => 'required|in:google,facebook',
+            'medium' => 'required|in:google,facebook,apple',
         ]);
 
         if ($validator->fails()) {
@@ -574,6 +592,35 @@ class CustomerAuthController extends Controller
             } elseif ($request['medium'] == 'facebook') {
                 $res = $client->request('GET', 'https://graph.facebook.com/' . $unique_id . '?access_token=' . $token . '&&fields=name,email');
                 $data = json_decode($res->getBody()->getContents(), true);
+            }elseif ($request['medium'] == 'apple') {
+                $apple_login = Helpers::get_business_settings('apple_login');
+                $teamId = $apple_login['team_id'];
+                $keyId = $apple_login['key_id'];
+                $sub = $apple_login['client_id'];
+                $aud = 'https://appleid.apple.com';
+                $iat = strtotime('now');
+                $exp = strtotime('+60days');
+                $keyContent = file_get_contents('storage/apple-login/'.$apple_login['service_file']);
+                $token = JWT::encode([
+                    'iss' => $teamId,
+                    'iat' => $iat,
+                    'exp' => $exp,
+                    'aud' => $aud,
+                    'sub' => $sub,
+                ], $keyContent, 'ES256', $keyId);
+
+                $redirect_uri = $apple_login['redirect_url']??'www.example.com/apple-callback';
+
+                $res = Http::asForm()->post('https://appleid.apple.com/auth/token', [
+                    'grant_type' => 'authorization_code',
+                    'code' => $unique_id,
+                    'redirect_uri' => $redirect_uri,
+                    'client_id' => $sub,
+                    'client_secret' => $token,
+                ]);
+
+                $claims = explode('.', $res['id_token'])[1];
+                $data = json_decode(base64_decode($claims),true);
             }
         } catch (\Exception $exception) {
             $errors = [];
@@ -583,7 +630,41 @@ class CustomerAuthController extends Controller
             ], 401);
         }
 
-        if (strcmp($email, $data['email']) === 0) {
+        if(!isset($claims)){
+
+            if (strcmp($email, $data['email']) != 0 || (!isset($data['id']) && !isset($data['kid']))) {
+                return response()->json(['error' => translate('email_does_not_match')],403);
+            }
+        }
+
+        $user =  $this->user->where('email', $data['email'])->first();
+
+        if ($request['medium'] == 'apple') {
+
+            if (!isset($apple_user)) {
+                $user = $this->user;
+                $user->f_name = implode('@', explode('@', $data['email'], -1));
+                $user->l_name = '';
+                $user->email = $data['email'];
+                $user->phone = null;
+                $user->image = 'def.png';
+                $user->password = bcrypt(rand(100000, 999999));
+                $user->is_active = 1;
+                $user->login_medium = $request['medium'];
+                $user->refer_code = Helpers::generate_referer_code();
+                $user->save();
+                $user->save();
+            }
+
+            $token = $user->createToken('AuthToken')->accessToken;
+            return response()->json([
+                'errors' => null,
+                'token' => $token,
+            ], 200);
+        }
+
+
+        if ($request['medium'] != 'apple' && strcmp($email, $data['email']) === 0) {
             $user = $this->user->where('email', $request['email'])->first();
 
             if (!isset($user)) {

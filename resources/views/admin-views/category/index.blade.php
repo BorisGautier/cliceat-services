@@ -3,7 +3,7 @@
 @section('title', translate('Add new category'))
 
 @push('css_or_js')
-
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 @endpush
 
 @section('content')
@@ -149,6 +149,7 @@
                                         <th>{{translate('Category_Image')}}</th>
                                         <th>{{translate('name')}}</th>
                                         <th>{{translate('status')}}</th>
+                                        <th>{{translate('priority')}}</th>
                                         <th class="text-center">{{translate('action')}}</th>
                                     </tr>
                                 </thead>
@@ -173,6 +174,16 @@
                                                     </label>
                                                 </div>
 
+                                        </td>
+                                        <td>
+                                            <div class="">
+                                                <select name="priority" class="custom-select"
+                                                        onchange="location.href='{{ route('admin.category.priority', ['id' => $category['id'], 'priority' => '']) }}' + this.value">
+                                                    @for($i = 1; $i <= 10; $i++)
+                                                        <option value="{{ $i }}" {{ $category->priority == $i ? 'selected' : '' }}>{{ $i }}</option>
+                                                    @endfor
+                                                </select>
+                                            </div>
                                         </td>
                                         <td>
                                             <div class="d-flex justify-content-center gap-2">
@@ -286,6 +297,53 @@
         $("#customFileEg2").change(function () {
             readURL(this, 'viewer2');
         });
+    </script>
+
+    <script>
+
+       function change_priority(id, priority, message) {
+           console.log(id);
+           console.log(priority);
+           console.log(message);
+           Swal.fire({
+               title: '{{translate("Are you sure?")}}',
+               text: message,
+               type: 'warning',
+               showCancelButton: true,
+               cancelButtonColor: 'default',
+               confirmButtonColor: '#FC6A57',
+               cancelButtonText: '{{translate("No")}}',
+               confirmButtonText: '{{translate("Yes")}}',
+               reverseButtons: true
+           }).then((result) => {
+               if (result.value) {
+                   const csrfToken = $('meta[name="csrf-token"]').attr('content');
+
+                   // Create a FormData object to pass data to the backend
+                   const formData = new FormData();
+                   formData.append('_token', csrfToken);
+                   formData.append('id', id); // Append category ID
+                   formData.append('priority', priority); // Append selected priority
+
+                   $.ajax({
+                       url: "{{ route('admin.category.priority') }}",
+                       method: "POST",
+                       data: formData,
+                       processData: false,
+                       contentType: false,
+                       success: function(response) {
+                           toastr.success("{{translate('Priority changed successfully')}}");
+                           setTimeout(function() {
+                               location.reload();
+                           }, 2000);
+                       },
+                       error: function(xhr) {
+                           toastr.error("{{translate('Priority changed failed')}}");
+                       }
+                   });
+               }
+           })
+       }
     </script>
 
 @endpush

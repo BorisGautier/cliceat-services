@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title', translate('Update main branch'))
+@section('title', translate('Main Branch Setup'))
 
 @push('css_or_js')
     <style>
@@ -40,7 +40,7 @@
                         <div class="card-header">
                             <h4 class="mb-0 d-flex gap-2 align-items-center">
                                 <i class="tio-user"></i>
-                                {{translate('branch_Information')}}
+                                {{translate('Branch_Information')}}
                             </h4>
                         </div>
                         <div class="card-body">
@@ -92,7 +92,7 @@
                                 </div>
                                 <div class="col-lg-4">
                                     <div class="form-group">
-                                        <label class="input-label">{{translate('password')}} <span class="text-danger">{{translate('*(input_if_you_want_to_reset)') }}</span></label>
+                                        <label class="input-label">{{translate('password')}} <span class="text-danger">*{{translate('(input_if_you_want_to_reset)') }}</span></label>
                                         <div class="input-group input-group-merge">
                                             <input type="password" name="password" class="js-toggle-password form-control form-control input-field" id="password"
                                                    placeholder="{{translate('Ex: 8+ Characters')}}"
@@ -312,8 +312,12 @@
                     map.fitBounds(bounds);
                 });
             };
+
             initAutocomplete();
+
         });
+
+
 
 
     </script>

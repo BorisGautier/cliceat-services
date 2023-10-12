@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title', translate('Promotional campaign'))
+@section('title', translate('Promotional Campaign'))
 
 @push('css_or_js')
 
@@ -27,7 +27,7 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="input-label">{{translate('Select Branch')}} <span class="text-danger">*</span></label>
+                                <label class="input-label">{{translate('Select Branch')}} <span class="text-danger ml-1">*</span></label>
                                 <select name="branch_id" class="custom-select" required>
                                     <option disabled selected>{{ translate('--select--') }}</option>
                                     @foreach($branches as $branch)
@@ -39,7 +39,7 @@
 
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="input-label">{{translate('Select Banner Type')}} <span class="text-danger">*</span></label>
+                                <label class="input-label">{{translate('Select Banner Type')}} <span class="text-danger ml-1">*</span></label>
                                 <select name="banner_type" id="banner_type" class="custom-select" required>
                                     <option value="" selected>{{ translate('--select--') }}</option>
                                     <option value="bottom_banner">{{ translate('Bottom Banner (1110*380 px)') }}</option>
@@ -52,14 +52,11 @@
                         <div class="col-md-6">
                             <div class="form-group">
                                 <div class=" from_part_2 video_section d--none" id="video_section">
-                                    <label class="input-label">
-                                        {{translate('youtube Video URL')}}
-                                        <span class="text-danger">*</span>
-                                    </label>
+                                    <label class="input-label">{{translate('youtube Video URL')}}<span class="text-danger ml-1">*</span></label>
                                     <input type="text" name="video" class="form-control" placeholder="{{ translate('ex : https://youtu.be/0sus46BflpU') }}">
                                 </div>
                                 <div class=" from_part_2 image_section d--none" id="image_section">
-                                    <label class="input-label">{{translate('Image')}} <span class="text-danger">*</span></label>
+                                    <label class="input-label">{{translate('Image')}} <span class="text-danger ml-1">*</span></label>
                                     <div class="custom-file">
                                         <input type="file" name="image" id="customFileEg" class="custom-file-input"
                                                accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*"
@@ -138,7 +135,7 @@
                                         {{$promotion['promotion_name']}}
                                     @else
                                         <div>
-                                            <img width="100" src="{{asset('storage/promotion')}}/{{$promotion['promotion_name']}}"
+                                            <img class="mx-80px" width="100" src="{{asset('storage/promotion')}}/{{$promotion['promotion_name']}}"
                                                  onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'">
                                         </div>
                                     @endif

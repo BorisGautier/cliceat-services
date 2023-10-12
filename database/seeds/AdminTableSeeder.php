@@ -22,9 +22,9 @@ class AdminTableSeeder extends Seeder
             'image' => 'def.png',
             'password' => bcrypt(12345678),
             'remember_token' =>Str::random(10),
-              'identity_number' => '123456789',
-  'identity_type' => 'NID',
-  'identity_image' => 'def.png',
+            'identity_number' => '123456789',
+            'identity_type' => 'NID',
+            'identity_image' => 'def.png',
             'created_at'=>now(),
             'updated_at'=>now()
         ]);

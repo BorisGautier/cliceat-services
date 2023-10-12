@@ -3,7 +3,7 @@
 @section('content')
     <!-- Title -->
     <div class="text-center text-white mb-4">
-        <h2>ClicEat Software Installation</h2>
+        <h2>eFood Software Installation</h2>
         <h6 class="fw-normal">All Done, Great Job. Your software is ready to run.</h6>
     </div>
 

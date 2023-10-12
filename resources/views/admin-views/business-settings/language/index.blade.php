@@ -27,7 +27,6 @@
                     <i class="tio-info alert--icon"></i> <strong class="word-nobreak mr-1">{{translate('Note :')}}</strong> <div class="w-0 flex-grow-1">{{translate('changing_some_settings_will_take_time_to_show_effect_please_clear_session_or_wait_for_60_minutes_else_browse_from_incognito_mode')}}</div>
                 </div>
 
-
                 <form class="card mb-3" action="{{route('admin.business-settings.web-app.system-setup.language.add-new')}}" method="post">
                     @csrf
                     <div class="card-body">

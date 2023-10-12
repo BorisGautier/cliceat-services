@@ -7,12 +7,16 @@ use App\CentralLogics\Helpers;
 use App\CentralLogics\OrderLogic;
 use App\Http\Controllers\Controller;
 use App\Model\AddOn;
+use App\Model\BusinessSetting;
 use App\Model\CustomerAddress;
 use App\Model\DMReview;
 use App\Model\Order;
 use App\Model\OrderDetail;
 use App\Model\Product;
 use App\Model\ProductByBranch;
+use App\Models\GuestUser;
+use App\Models\OfflinePayment;
+use App\Models\OrderPartialPayment;
 use App\User;
 use Brian2694\Toastr\Facades\Toastr;
 use Carbon\Carbon;
@@ -30,11 +34,10 @@ class OrderController extends Controller
         private OrderDetail     $order_detail,
         private ProductByBranch $product_by_branch,
         private Product         $product,
-
-    )
-    {
-    }
-
+        private OfflinePayment  $offline_payment,
+        private OrderPartialPayment $order_partial_payment,
+        private BusinessSetting $business_setting,
+    ){}
 
     /**
      * @param Request $request
@@ -43,14 +46,18 @@ class OrderController extends Controller
     public function track_order(Request $request): JsonResponse
     {
         $validator = Validator::make($request->all(), [
-            'order_id' => 'required'
+            'order_id' => 'required',
+            'guest_id' => auth('api')->user() ? 'nullable' : 'required',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
 
-        $order = $this->order->where(['id' => $request['order_id'], 'user_id' => $request->user()->id])->first();
+        $user_id = (bool)auth('api')->user() ? auth('api')->user()->id : $request['guest_id'];
+        $user_type = (bool)auth('api')->user() ? 0 : 1;
+
+        $order = $this->order->where(['id' => $request['order_id'], 'user_id' => $user_id, 'is_guest' => $user_type])->first();
         if (!isset($order)) {
             return response()->json([
                 'errors' => [
@@ -77,28 +84,41 @@ class OrderController extends Controller
             'delivery_time' => 'required',
             'delivery_date' => 'required',
             'distance' => 'required',
+            'guest_id' => auth('api')->user() ? 'nullable' : 'required',
+            'is_partial' => 'required|in:0,1',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
 
-        if ($request->payment_method == 'wallet_payment' && Helpers::get_business_settings('wallet_status', false) != 1) {
-            return response()->json([
-                'errors' => [
-                    ['code' => 'payment_method', 'message' => translate('customer_wallet_status_is_disable')]
-                ]
-            ], 203);
+        //update daily stock
+        Helpers::update_daily_product_stock();
+
+        if(auth('api')->user()){
+            $customer = $this->user->find(auth('api')->user()->id);
         }
 
-        $customer = $this->user->find($request->user()->id);
+        if ($request->payment_method == 'wallet_payment') {
+            if (Helpers::get_business_settings('wallet_status') != 1){
+                return response()->json(['errors' => [['code' => 'payment_method', 'message' => translate('customer_wallet_status_is_disable')]]], 403);
+            }
+            if (isset($customer) && $customer->wallet_balance < $request['order_amount']) {
+                return response()->json(['errors' => [['code' => 'payment_method', 'message' => translate('you_do_not_have_sufficient_balance_in_wallet')]]], 403);
+            }
+        }
 
-        if ($request->payment_method == 'wallet_payment' && $customer->wallet_balance < $request['order_amount']) {
-            return response()->json([
-                'errors' => [
-                    ['code' => 'payment_method', 'message' => translate('you_do_not_have_sufficient_balance_in_wallet')]
-                ]
-            ], 203);
+        //partial order validation
+        if ($request['is_partial'] == 1) {
+            if (Helpers::get_business_settings('wallet_status') != 1){
+                return response()->json(['errors' => [['code' => 'payment_method', 'message' => translate('customer_wallet_status_is_disable')]]], 403);
+            }
+            if (isset($customer) && $customer->wallet_balance > $request['order_amount']){
+                return response()->json(['errors' => [['code' => 'payment_method', 'message' => translate('since your wallet balance is more than order amount, you can not place partial order')]]], 403);
+            }
+            if (isset($customer) && $customer->wallet_balance < 1){
+                return response()->json(['errors' => [['code' => 'payment_method', 'message' => translate('since your wallet balance is less than 1, you can not place partial order')]]], 403);
+            }
         }
 
         //order scheduling
@@ -111,16 +131,37 @@ class OrderController extends Controller
             $del_time = Carbon::parse($request['delivery_time'])->add($preparation_time, 'minute')->format('H:i:s');
         }
 
+        $user_id = (bool)auth('api')->user() ? auth('api')->user()->id : $request['guest_id'];
+        $user_type = (bool)auth('api')->user() ? 0 : 1;
+
+        if ($request->is_partial == 1) {
+            $payment_status = ($request->payment_method == 'cash_on_delivery' || $request->payment_method == 'offline_payment') ? 'partial_paid' : 'paid';
+        } else {
+            $payment_status = ($request->payment_method == 'cash_on_delivery' || $request->payment_method == 'offline_payment') ? 'unpaid' : 'paid';
+        }
+
+        if ($request->is_partial == 1) {
+            $order_status = 'confirmed';
+        } elseif ($request->is_partial == 0 && ($request->payment_method == 'cash_on_delivery' || $request->payment_method == 'offline_payment')) {
+            $order_status = 'pending';
+        } else {
+            $order_status = 'confirmed';
+        }
+
+
         try {
             $order_id = 100000 + $this->order->all()->count() + 1;
             $or = [
                 'id' => $order_id,
-                'user_id' => $request->user()->id,
+                'user_id' => $user_id,
+                'is_guest' => $user_type,
                 'order_amount' => Helpers::set_price($request['order_amount']),
                 'coupon_discount_amount' => Helpers::set_price($request->coupon_discount_amount),
                 'coupon_discount_title' => $request->coupon_discount_title == 0 ? null : 'coupon_discount_title',
-                'payment_status' => ($request->payment_method == 'cash_on_delivery') ? 'unpaid' : 'paid',
-                'order_status' => ($request->payment_method == 'cash_on_delivery') ? 'pending' : 'confirmed',
+                //'payment_status' => ($request->payment_method == 'cash_on_delivery' || $request->payment_method == 'offline_payment') ? 'unpaid' : 'paid',
+                'payment_status' => $payment_status,
+               // 'order_status' => ($request->payment_method == 'cash_on_delivery' || $request->payment_method == 'offline_payment') ? 'pending' : 'confirmed',
+                'order_status' => $order_status,
                 'coupon_code' => $request['coupon_code'],
                 'payment_method' => $request->payment_method,
                 'transaction_reference' => $request->transaction_reference ?? null,
@@ -142,6 +183,14 @@ class OrderController extends Controller
                 $product = $this->product->find($c['product_id']);
 
                 $branch_product = $this->product_by_branch->where(['product_id' => $c['product_id'], 'branch_id' => $request['branch_id']])->first();
+
+                //daily and fixed stock quantity validation
+                if($branch_product->stock_type == 'daily' || $branch_product->stock_type == 'fixed' ){
+                    $available_stock = $branch_product->stock - $branch_product->sold_quantity;
+                    if ($available_stock < $c['quantity']){
+                        return response()->json(['errors' => [['code' => 'stock', 'message' => translate('stock limit exceeded')]]], 403);
+                    }
+                }
 
                 $discount_data = [];
 
@@ -223,6 +272,12 @@ class OrderController extends Controller
                 $this->order_detail->insert($or_d);
 
                 $this->product->find($c['product_id'])->increment('popularity_count');
+
+                //daily and fixed stock quantity update
+                if($branch_product->stock_type == 'daily' || $branch_product->stock_type == 'fixed' ){
+                    $branch_product->sold_quantity += $c['quantity'];
+                    $branch_product->save();
+                }
             }
 
             $or['total_tax_amount'] = $total_tax_amount;
@@ -234,15 +289,72 @@ class OrderController extends Controller
                 CustomerLogic::create_wallet_transaction($or['user_id'], $amount, 'order_place', $or['id']);
             }
 
-            $fcm_token = $request->user()->cm_firebase_token;
-            $value = Helpers::order_status_update_message(($request->payment_method == 'cash_on_delivery') ? 'pending' : 'confirmed');
+            if ($request->payment_method == 'offline_payment') {
+                $offline_payment = $this->offline_payment;
+                $offline_payment->order_id = $or['id'];
+                $offline_payment->payment_info = json_encode($request['payment_info']);
+                $offline_payment->save();
+            }
+
+            if ($request['is_partial'] == 1){
+                $total_order_amount = $or['order_amount'] + $or['delivery_charge'];
+                $wallet_amount = $customer->wallet_balance;
+                $due_amount = $total_order_amount - $wallet_amount;
+
+                $wallet_transaction = CustomerLogic::create_wallet_transaction($or['user_id'], $wallet_amount, 'order_place', $or['id']);
+
+                $partial = new OrderPartialPayment;
+                $partial->order_id = $or['id'];
+                $partial->paid_with = 'wallet_payment';
+                $partial->paid_amount = $wallet_amount;
+                $partial->due_amount = $due_amount;
+                $partial->save();
+
+                if ($request['payment_method'] != 'cash_on_delivery'){
+                    $partial = new OrderPartialPayment;
+                    $partial->order_id = $or['id'];
+                    $partial->paid_with = $request['payment_method'];
+                    $partial->paid_amount = $due_amount;
+                    $partial->due_amount = 0;
+                    $partial->save();
+                }
+
+            }
+
+            //send push notification
+            if ((bool)auth('api')->user()){
+                $fcm_token = auth('api')->user()->cm_firebase_token;
+                $local = auth('api')->user()->language_code;
+                $customer_name = auth('api')->user()->f_name . ' '. auth('api')->user()->l_name;
+            }else{
+                $guest = GuestUser::find($request['guest_id']);
+                $fcm_token = $guest ? $guest->fcm_token : '';
+                $local = 'en';
+                $customer_name = 'Guest User';
+            }
+
+            $message = Helpers::order_status_update_message($or['order_status']);
+
+            if ($local != 'en'){
+                $status_key = Helpers::order_status_message_key($or['order_status']);
+                $translated_message = $this->business_setting->with('translations')->where(['key' => $status_key])->first();
+                if (isset($translated_message->translations)){
+                    foreach ($translated_message->translations as $translation){
+                        if ($local == $translation->locale){
+                            $message = $translation->value;
+                        }
+                    }
+                }
+            }
+            $restaurant_name = Helpers::get_business_settings('restaurant_name');
+            $value = Helpers::text_variable_data_format(value:$message, user_name: $customer_name, restaurant_name: $restaurant_name,  order_id: $order_id);
+
             try {
-                //send push notification
-                if ($value) {
+                if ($value && isset($fcm_token)) {
                     $data = [
                         'title' => translate('Order'),
                         'description' => $value,
-                        'order_id' => $order_id,
+                        'order_id' => (bool)auth('api')->user() ? $order_id : null,
                         'image' => '',
                         'type' => 'order_status',
                     ];
@@ -251,8 +363,9 @@ class OrderController extends Controller
 
                 //send email
                 $emailServices = Helpers::get_business_settings('mail_config');
-                if (isset($emailServices['status']) && $emailServices['status'] == 1) {
-                    Mail::to($request->user()->email)->send(new \App\Mail\OrderPlaced($order_id));
+                $order_mail_status = Helpers::get_business_settings('place_order_mail_status_user');
+                if (isset($emailServices['status']) && $emailServices['status'] == 1 && $order_mail_status == 1 && (bool)auth('api')->user()) {
+                    Mail::to(auth('api')->user()->email)->send(new \App\Mail\OrderPlaced($order_id));
                 }
 
             } catch (\Exception $e) {
@@ -291,9 +404,13 @@ class OrderController extends Controller
      */
     public function get_order_list(Request $request): JsonResponse
     {
+        $user_id = (bool)auth('api')->user() ? auth('api')->user()->id : $request['guest_id'];
+        $user_type = (bool)auth('api')->user() ? 0 : 1;
+
         $orders = $this->order->with(['customer', 'delivery_man.rating'])
             ->withCount('details')
-            ->where(['user_id' => $request->user()->id])->get();
+            ->where(['user_id' => $user_id, 'is_guest' => $user_type])
+            ->get();
 
         $orders->map(function ($data) {
             $data['deliveryman_review_count'] = DMReview::where(['delivery_man_id' => $data['delivery_man_id'], 'order_id' => $data['id']])->count();
@@ -335,11 +452,14 @@ class OrderController extends Controller
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
 
-        $details = $this->order_detail->with(['order'])
+        $user_id = (bool)auth('api')->user() ? auth('api')->user()->id : $request['guest_id'];
+        $user_type = (bool)auth('api')->user() ? 0 : 1;
+
+        $details = $this->order_detail->with(['order', 'order.order_partial_payments'])
             ->withCount(['reviews'])
             ->where(['order_id' => $request['order_id']])
-            ->whereHas('order', function ($q) use ($request){
-                $q->where([ 'user_id' => $request->user()->id ]);
+            ->whereHas('order', function ($q) use ($user_id, $user_type){
+                $q->where([ 'user_id' => $user_id, 'is_guest' => $user_type ]);
             })
             ->get();
 
@@ -391,5 +511,102 @@ class OrderController extends Controller
                 ['code' => 'order', 'message' => translate('no_data_found')]
             ]
         ], 401);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function guset_track_order(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'order_id' => 'required',
+            'phone' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::error_processor($validator)], 403);
+        }
+
+        $order_id = $request->input('order_id');
+        $phone = $request->input('phone');
+
+        $order = $this->order->with(['customer', 'delivery_address'])
+            ->where('id', $order_id)
+            ->where(function ($query) use ($phone) {
+                $query->where(function ($subQuery) use ($phone) {
+                    $subQuery->where('is_guest', 0)
+                        ->whereHas('customer', function ($customerSubQuery) use ($phone) {
+                            $customerSubQuery->where('phone', $phone);
+                        });
+                })
+                    ->orWhere(function ($subQuery) use ($phone) {
+                        $subQuery->where('is_guest', 1)
+                            ->whereHas('delivery_address', function ($addressSubQuery) use ($phone) {
+                                $addressSubQuery->where('contact_person_number', $phone);
+                            });
+                    });
+            })
+            ->first();
+
+
+        if (!isset($order)) {
+            return response()->json(['errors' => [['code' => 'order', 'message' => translate('Order not found!')]]], 404);
+        }
+
+        return response()->json(OrderLogic::track_order($request['order_id']), 200);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function get_guest_order_details(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'order_id' => 'required',
+            'phone' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::error_processor($validator)], 403);
+        }
+
+        $phone = $request->input('phone');
+
+        $details = $this->order_detail->with(['order', 'order.customer', 'order.delivery_address', 'order.order_partial_payments'])
+            ->withCount(['reviews'])
+            ->where(['order_id' => $request['order_id']])
+            ->where(function ($query) use ($phone) {
+                $query->where(function ($subQuery) use ($phone) {
+                    $subQuery->whereHas('order', function ($orderSubQuery) use ($phone){
+                        $orderSubQuery->where('is_guest', 0)
+                            ->whereHas('customer', function ($customerSubQuery) use ($phone) {
+                                $customerSubQuery->where('phone', $phone);
+                            });
+                    });
+                })
+                    ->orWhere(function ($subQuery) use ($phone) {
+                        $subQuery->whereHas('order', function ($orderSubQuery) use ($phone){
+                            $orderSubQuery->where('is_guest', 1)
+                                ->whereHas('delivery_address', function ($addressSubQuery) use ($phone) {
+                                    $addressSubQuery->where('contact_person_number', $phone);
+                                });
+                        });
+
+                    });
+            })
+            ->get();
+
+        if ($details->count() < 1) {
+            return response()->json([
+                'errors' => [
+                    ['code' => 'order', 'message' => translate('Order not found!')]
+                ]
+            ], 404);
+        }
+
+        $details = Helpers::order_details_formatter($details);
+        return response()->json($details, 200);
     }
 }

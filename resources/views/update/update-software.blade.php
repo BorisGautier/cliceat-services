@@ -11,7 +11,7 @@
                     </div>
                 @endif
                 <div class="mar-ver pad-btm text-center">
-                    <h1 class="h3">ClicEat Software Update</h1>
+                    <h1 class="h3">eFood Software Update</h1>
                 </div>
                 <div class="card mt-3">
                     <div class="card-body">

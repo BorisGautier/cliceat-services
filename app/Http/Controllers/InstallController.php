@@ -148,7 +148,7 @@ class InstallController extends Controller
         if (self::check_database_connection($request->DB_HOST, $request->DB_DATABASE, $request->DB_USERNAME, $request->DB_PASSWORD)) {
 
             $key = base64_encode(random_bytes(32));
-            $output = 'APP_NAME=cliceat
+            $output = 'APP_NAME=efood
                     APP_ENV=live
                     APP_KEY=base64:' . $key . '
                     APP_DEBUG=false
@@ -182,7 +182,7 @@ class InstallController extends Controller
                     PURCHASE_CODE=' . session('purchase_key') . '
                     BUYER_USERNAME=' . session('username') . '
                     SOFTWARE_ID=MzAzMjAzMzg=
-                    SOFTWARE_VERSION=10.0
+                    SOFTWARE_VERSION=10.1
                     ';
             $file = fopen(base_path('.env'), 'w');
             fwrite($file, $output);

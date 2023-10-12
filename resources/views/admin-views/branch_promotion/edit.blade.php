@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title', translate('Promotional campaign'))
+@section('title', translate('Promotional Campaign'))
 
 @push('css_or_js')
 
@@ -27,9 +27,7 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="input-label">
-                                    {{translate('Select Branch')}}
-                                    <span class="text-danger">*</span>
+                                <label class="input-label">{{translate('Select Branch')}}<span class="text-danger">*</span>
                                 </label>
                                 <select name="branch_id" class="form-control js-select2-custom" required>
                                     <option value="" selected>{{ translate('--select--') }}</option>
@@ -44,10 +42,7 @@
                     <div class="row">
                         <div class="col-md-6">
                             <div class="form-group">
-                                <label class="input-label">
-                                    {{translate('Select Banner Type')}}
-                                    <span class="text-danger">*</span>
-                                </label>
+                                <label class="input-label">{{translate('Select Banner Type')}}<span class="text-danger">*</span></label>
                                 <select name="banner_type" id="banner_type" class="form-control" required>
                                     <option value="" selected>{{ translate('--select--') }}</option>
                                     <option value="bottom_banner" {{ $promotion->promotion_type == 'bottom_banner' ? 'selected' : '' }}>{{ translate('Bottom Banner (1110*380 px)') }}</option>
@@ -66,10 +61,7 @@
                                 </div>
                                 @else
                                 <div class="from_part_2 image_section" id="image_section">
-                                    <label class="input-label">
-                                        {{translate('Image')}}
-                                        <span class="text-danger">*</span>
-                                    </label>
+                                    <label class="input-label">{{translate('Image')}}<span class="text-danger">*</span></label>
                                     <div class="custom-file">
                                         <input type="file" name="image" id="customFileEg" class="custom-file-input"
                                                accept=".jpg, .png, .jpeg, .gif, .bmp, .tif, .tiff|image/*"
@@ -79,7 +71,7 @@
                                     <div class="from_part_2 mt-3">
                                         <div class="form-group">
                                             <div class="text-center">
-                                                <img width="180" class="rounded-10 border" id="viewer"
+                                                <img width="180" class="rounded-10 border mx-80px" id="viewer"
                                                      src="{{asset('storage/promotion')}}/{{$promotion['promotion_name']}}" alt="image"
                                                      onerror="this.src='{{asset('assets/admin/img/160x160/img2.jpg')}}'"/>
                                             </div>

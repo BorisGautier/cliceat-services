@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Model\BusinessSetting;
 use App\Model\CustomerAddress;
 use App\Model\Order;
+use App\Models\OrderPartialPayment;
 use App\User;
 use Brian2694\Toastr\Facades\Toastr;
 use Carbon\Carbon;
@@ -36,6 +37,9 @@ class OrderController extends Controller
      */
     public function list($status, Request $request): Renderable
     {
+        //update daily stock
+        Helpers::update_daily_product_stock();
+
         $from = $request['from'];
         $to = $request['to'];
 
@@ -182,7 +186,7 @@ class OrderController extends Controller
     public function details($id): Renderable|RedirectResponse
     {
         $order = $this->order
-            ->with('details')
+            ->with(['details','order_partial_payments'])
             ->where(['id' => $id, 'branch_id' => auth('branch')->id()])
             ->first();
 
@@ -231,23 +235,34 @@ class OrderController extends Controller
         }
 
         if ($request->order_status == 'delivered') {
-            if ($order->user_id) CustomerLogic::create_loyalty_point_transaction($order->user_id, $order->id, $order->order_amount, 'order_place');
+            if ($order->is_guest == 0){
+                if ($order->user_id) CustomerLogic::create_loyalty_point_transaction($order->user_id, $order->id, $order->order_amount, 'order_place');
 
-            if ($order->transaction == null) {
-                $ol = OrderLogic::create_transaction($order, 'admin');
-//                if (!$ol) {
-//                    Toastr::warning(translate('failed_to_create_order_transaction'));
-//                    return back();
-//                }
+                if ($order->transaction == null) {
+                    $ol = OrderLogic::create_transaction($order, 'admin');
+                }
+
+                $user = $this->user->find($order->user_id);
+                $is_first_order = $this->order->where(['user_id' => $user->id, 'order_status' => 'delivered'])->count('id');
+                $referred_by_user = $this->user->find($user->refer_by);
+
+                if ($is_first_order < 2 && isset($user->refer_by) && isset($referred_by_user)) {
+                    if ($this->business_setting->where('key', 'ref_earning_status')->first()->value == 1) {
+                        CustomerLogic::referral_earning_wallet_transaction($order->user_id, 'referral_order_place', $referred_by_user->id);
+                    }
+                }
             }
 
-            $user = $this->user->find($order->user_id);
-            $is_first_order = $this->order->where('user_id', $user->id)->count('id');
-            $referred_by_user = $this->user->find($user->refer_by);
-
-            if ($is_first_order < 2 && isset($user->refer_by) && isset($referred_by_user)) {
-                if ($this->business_setting->where('key', 'ref_earning_status')->first()->value == 1) {
-                    CustomerLogic::referral_earning_wallet_transaction($order->user_id, 'referral_order_place', $referred_by_user->id);
+            //partials payment transaction
+            if ($order['payment_method'] == 'cash_on_delivery'){
+                $partial_data = OrderPartialPayment::where(['order_id' => $order->id])->first();
+                if ($partial_data){
+                    $partial = new OrderPartialPayment;
+                    $partial->order_id = $order['id'];
+                    $partial->paid_with = 'cash_on_delivery';
+                    $partial->paid_amount = $partial_data->due_amount;
+                    $partial->due_amount = 0;
+                    $partial->save();
                 }
             }
         }
@@ -482,7 +497,7 @@ class OrderController extends Controller
      */
     public function generate_invoice($id): Renderable
     {
-        $order = $this->order->where(['id' => $id, 'branch_id' => auth('branch')->id()])->first();
+        $order = $this->order->with(['order_partial_payments'])->where(['id' => $id, 'branch_id' => auth('branch')->id()])->first();
         return view('branch-views.order.invoice', compact('order'));
     }
 

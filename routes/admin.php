@@ -75,6 +75,9 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::get('clear', 'POSController@clear_session_data')->name('clear');
             Route::post('customer-store', 'POSController@customer_store')->name('customer-store');
             Route::post('session-destroy', 'POSController@session_destroy')->name('session-destroy');
+            Route::post('add-delivery-address', 'POSController@addDeliveryInfo')->name('add-delivery-address');
+            Route::get('get-distance', 'POSController@get_distance')->name('get-distance');
+            Route::post('order_type/store', 'POSController@order_type_store')->name('order_type.store');
 
         });
 
@@ -207,6 +210,7 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::get('status/{id}/{status}', 'CategoryController@status')->name('status');
             Route::delete('delete/{id}', 'CategoryController@delete')->name('delete');
             Route::post('search', 'CategoryController@search')->name('search');
+            Route::get('priority', 'CategoryController@priority')->name('priority');
         });
 
         Route::group(['prefix' => 'message', 'as' => 'message.', 'middleware' => ['module:help_and_support_management']], function () {
@@ -235,6 +239,14 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
         });
 
         Route::group(['prefix' => 'business-settings', 'as' => 'business-settings.', 'middleware' => ['module:system_management']], function () {
+
+            Route::group(['prefix' => 'email-setup'], function () {
+                Route::get('{type}/{tab?}', 'EmailTemplateController@email_index')->name('email-setup');
+                Route::POST('update/{type}/{tab?}', 'EmailTemplateController@update_email_index')->name('email-setup.update');
+                Route::get('{type}/{tab}/{status}', 'EmailTemplateController@update_email_status')->name('email-status');
+
+            });
+
             //restaurant-settings
             Route::group(['prefix' => 'restaurant', 'as' => 'restaurant.'], function () {
                 Route::get('restaurant-setup', 'BusinessSettingsController@restaurant_index')->name('restaurant-setup')->middleware('actch');
@@ -260,6 +272,17 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
 
                 Route::get('otp-setup', 'BusinessSettingsController@otp_setup')->name('otp-setup');
                 Route::post('otp-setup-update', 'BusinessSettingsController@otp_setup_update')->name('otp-setup-update');
+
+                Route::get('customer-settings', 'BusinessSettingsController@customer_settings')->name('customer.settings');
+                Route::post('customer-settings-update', 'BusinessSettingsController@customer_settings_update')->name('customer.settings.update');
+
+                Route::get('order-index', 'BusinessSettingsController@order_index')->name('order-index');
+                Route::post('order-update', 'BusinessSettingsController@order_update')->name('order-update');
+
+                Route::get('qrcode-index', 'QRCodeController@index')->name('qrcode-index');
+                Route::post('qrcode/store', 'QRCodeController@store')->name('qrcode.store');
+                Route::get('qrcode/download-pdf', 'QRCodeController@download_pdf')->name('qrcode.download-pdf');
+                Route::get('qrcode/print', 'QRCodeController@print_qrcode')->name('qrcode.print');
             });
 
             //web-app
@@ -273,6 +296,8 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
 
                 Route::get('third-party/payment-method', 'BusinessSettingsController@payment_index')->name('payment-method')->middleware('actch');
                 Route::post('payment-method-update/{payment_method}', 'BusinessSettingsController@payment_update')->name('payment-method-update')->middleware('actch');
+                Route::post('payment-config-update', 'BusinessSettingsController@payment_config_update')->name('payment-config-update')->middleware('actch');
+                Route::post('payment-method-status', 'BusinessSettingsController@payment_method_status')->name('payment-method-status')->middleware('actch');
 
                 //system-setup
                 Route::group(['prefix' => 'system-setup', 'as' => 'system-setup.'], function () {
@@ -320,14 +345,26 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
 
                     //fcm-index
                     Route::get('fcm-index', 'BusinessSettingsController@fcm_index')->name('fcm-index')->middleware('actch');
+                    Route::get('fcm-config', 'BusinessSettingsController@fcm_config')->name('fcm-config')->middleware('actch');
                     Route::post('update-fcm', 'BusinessSettingsController@update_fcm')->name('update-fcm')->middleware('actch');
 
                     // on new release > after v9.2
                     Route::get('social-login', 'BusinessSettingsController@social_login')->name('social-login');
                     Route::get('social-login-status', 'BusinessSettingsController@social_login_status')->name('social-login-status');
+                    Route::post('update-apple-login', 'BusinessSettingsController@update_apple_login')->name('update-apple-login');
 
                     Route::get('chat', 'BusinessSettingsController@chat_index')->name('chat');
                     Route::post('chat-update/{name}', 'BusinessSettingsController@chat_update')->name('chat-update');
+
+                    Route::group(['prefix' => 'offline-payment', 'as' => 'offline-payment.'], function(){
+                        Route::get('list', 'OfflinePaymentMethodController@list')->name('list');
+                        Route::get('add', 'OfflinePaymentMethodController@add')->name('add');
+                        Route::post('store', 'OfflinePaymentMethodController@store')->name('store');
+                        Route::get('edit/{id}', 'OfflinePaymentMethodController@edit')->name('edit');
+                        Route::post('update/{id}', 'OfflinePaymentMethodController@update')->name('update');
+                        Route::get('status/{id}/{status}', 'OfflinePaymentMethodController@status')->name('status');
+                        Route::post('delete', 'OfflinePaymentMethodController@delete')->name('delete');
+                    });
 
                 });
                 Route::group(['as' => 'third-party.', 'middleware' => ['module:system_management']], function () {
@@ -412,11 +449,19 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
 
             Route::get('loyalty-point/report', 'LoyaltyPointController@report')->name('loyalty-point.report');
 
-
             Route::group(['prefix' => 'wallet', 'as' => 'wallet.'], function () {
                 Route::get('add-fund', 'CustomerWalletController@add_fund_view')->name('add-fund');
                 Route::post('add-fund', 'CustomerWalletController@add_fund')->name('add-fund-store');
                 Route::get('report', 'CustomerWalletController@report')->name('report');
+
+                Route::group(['prefix' => 'bonus', 'as' => 'bonus.'], function () {
+                    Route::get('index', 'WalletBonusController@index')->name('index');
+                    Route::post('store', 'WalletBonusController@store')->name('store');
+                    Route::get('edit/{id}', 'WalletBonusController@edit')->name('edit');
+                    Route::post('update/{id}', 'WalletBonusController@update')->name('update');
+                    Route::get('status/{id}/{status}', 'WalletBonusController@status')->name('status');
+                    Route::delete('delete/{id}', 'WalletBonusController@delete')->name('delete');
+                });
             });
         });
 
@@ -449,6 +494,14 @@ Route::group(['namespace' => 'Admin', 'as' => 'admin.'], function () {
             Route::delete('delete/{id}', 'BranchPromotionController@delete')->name('delete');
             Route::get('branch/{id}', 'BranchPromotionController@branch_wise_list')->name('branch');
             Route::get('status/{id}/{status}', 'BranchPromotionController@status')->name('status');
+        });
+
+        Route::group(['namespace' => 'System','prefix' => 'system-addon', 'as' => 'system-addon.', 'middleware'=>['module:user_management']], function () {
+            Route::get('/', 'AddonController@index')->name('index');
+            Route::post('publish', 'AddonController@publish')->name('publish');
+            Route::post('activation', 'AddonController@activation')->name('activation');
+            Route::post('upload', 'AddonController@upload')->name('upload');
+            Route::post('delete', 'AddonController@delete_theme')->name('delete');
         });
     });
 });

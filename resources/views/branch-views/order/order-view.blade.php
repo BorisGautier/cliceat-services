@@ -141,12 +141,13 @@
                                             : {{$order['transaction_reference']}}
                                         </div>
                                     @endif
-                                    {{--                                    </div>--}}
 
                                     <div class="d-flex gap-3 justify-content-sm-end mb-3">
                                         <div>{{translate('Payment_Status')}} :</div>
                                         @if($order['payment_status']=='paid')
                                             <span class="badge-soft-success px-2 rounded text-capitalize">{{translate('paid')}}</span>
+                                        @elseif($order['payment_status']=='partial_paid')
+                                            <span class="badge-soft-success px-2 rounded text-capitalize">{{translate('partial_paid')}}</span>
                                         @else
                                             <span class="badge-soft-danger px-2 rounded text-capitalize">{{translate('unpaid')}}</span>
                                         @endif
@@ -360,6 +361,36 @@
                                         <div class="d-flex max-w220 ml-auto">{{translate('total')}}:</div>
                                     </dt>
                                     <dd class="col-6 border-top pt-2 fz-16 font-weight-bold text-dark text-right">{{ \App\CentralLogics\Helpers::set_symbol($sub_total - $order['coupon_discount_amount'] - $order['extra_discount'] + $del_c) }}</dd>
+
+                                    <!-- partial payment-->
+                                    @if ($order->order_partial_payments->isNotEmpty())
+                                        @foreach($order->order_partial_payments as $partial)
+                                            <dt class="col-6">
+                                                <div class="d-flex max-w220 ml-auto">
+                                            <span>
+                                                {{translate('Paid By')}} ({{str_replace('_', ' ',$partial->paid_with)}})</span>
+                                                    <span>:</span>
+                                                </div>
+                                            </dt>
+                                            <dd class="col-6 text-dark text-right">
+                                                {{ \App\CentralLogics\Helpers::set_symbol($partial->paid_amount) }}
+                                            </dd>
+                                        @endforeach
+                                            <?php
+                                            $due_amount = 0;
+                                            $due_amount = $order->order_partial_payments->first()?->due_amount;
+                                            ?>
+                                        <dt class="col-6">
+                                            <div class="d-flex max-w220 ml-auto">
+                                            <span>
+                                                {{translate('Due Amount')}}</span>
+                                                <span>:</span>
+                                            </div>
+                                        </dt>
+                                        <dd class="col-6 text-dark text-right">
+                                            {{ \App\CentralLogics\Helpers::set_symbol($due_amount) }}
+                                        </dd>
+                                    @endif
                                 </dl>
                             </div>
                         </div>
@@ -396,22 +427,36 @@
                                     </select>
                                 </div>
                                 <div class="">
-                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
-                                        <a class="dropdown-item"
-                                           onclick="route_alert('{{route('branch.orders.payment-status',['id'=>$order['id'],'payment_status'=>'paid'])}}','{{\App\CentralLogics\translate("Change status to paid ?")}}')"
-                                           href="javascript:">{{translate('paid')}}</a>
-                                        <a class="dropdown-item"
-                                           onclick="route_alert('{{route('branch.orders.payment-status',['id'=>$order['id'],'payment_status'=>'unpaid'])}}','{{\App\CentralLogics\translate("Change status to unpaid ?")}}')"
-                                           href="javascript:">{{translate('unpaid')}}</a>
-                                    </div>
-                                    <label class="font-weight-bold text-dark fz-14">{{translate('Payment_Status')}}</label>
-                                    <select name="order_status" onchange="route_alert('{{route('branch.orders.payment-status',['id'=>$order['id']])}}'+'&payment_status='+ this.value,'{{\App\CentralLogics\translate("Change status to ")}}'+ this.value)" class="status custom-select" data-id="100147">
+{{--                                    <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">--}}
+{{--                                        <a class="dropdown-item"--}}
+{{--                                           onclick="route_alert('{{route('branch.orders.payment-status',['id'=>$order['id'],'payment_status'=>'paid'])}}','{{\App\CentralLogics\translate("Change status to paid ?")}}')"--}}
+{{--                                           href="javascript:">{{translate('paid')}}</a>--}}
+{{--                                        <a class="dropdown-item"--}}
+{{--                                           onclick="route_alert('{{route('branch.orders.payment-status',['id'=>$order['id'],'payment_status'=>'unpaid'])}}','{{\App\CentralLogics\translate("Change status to unpaid ?")}}')"--}}
+{{--                                           href="javascript:">{{translate('unpaid')}}</a>--}}
+{{--                                    </div>--}}
+
+{{--                                    <label class="font-weight-bold text-dark fz-14">{{translate('Payment_Status')}}</label>--}}
+
+                                    {{-- <select name="order_status" onchange="route_alert('{{route('branch.orders.payment-status',['id'=>$order['id']])}}'+'&payment_status='+ this.value,'{{\App\CentralLogics\translate("Change status to ")}}'+ this.value)" class="status custom-select" data-id="100147">
                                         <option value="paid" {{$order['payment_status'] == 'paid'? 'selected' : ''}}> {{translate('paid')}}</option>
                                         <option value="unpaid" {{$order['payment_status'] == 'unpaid'? 'selected' : ''}}>{{translate('unpaid')}} </option>
-                                    </select>
+                                    </select> --}}
+
+                                    <div class="d-flex justify-content-between align-items-center gap-10 form-control">
+                                        <span class="title-color">{{ translate('Payment Status') }}</span>
+
+                                        <label class="switcher payment-status-text">
+                                            <input class="switcher_input" type="checkbox" name="payment_status" value="1"
+                                                   onclick="location.href='{{route('branch.orders.payment-status',['id'=>$order['id'],'payment_status' =>$order->payment_status == 'paid' ?'unpaid':'paid'])}}'"
+                                                {{$order->payment_status == 'paid' ?'checked':''}}>
+                                            <span class="switcher_control"></span>
+                                        </label>
+                                    </div>
+
                                 </div>
                             @endif
-                            @if($order->customer)
+                            @if($order->customer || $order->is_guest == 1)
                                 <div class="">
                                     {{--                                need change option--}}
                                     <label class="font-weight-bold text-dark fz-14">{{translate('Delivery_Date_&_Time')}} {{$order['delivery_date'] > \Carbon\Carbon::now()->format('Y-m-d')? translate('(Scheduled)') : ''}}</label>

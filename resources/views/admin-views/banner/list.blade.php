@@ -20,7 +20,6 @@
         </div>
         <!-- End Page Header -->
 
-
         <div class="row g-2">
             <div class="col-sm-12 col-lg-12 mb-3 mb-lg-2">
                 <form action="{{route('admin.banner.store')}}" method="post" enctype="multipart/form-data">
@@ -30,13 +29,12 @@
                             <div class="row">
                                 <div class="col-lg-6">
                                     <div class="form-group">
-                                        <label class="input-label">{{translate('title')}}</label>
+                                        <label class="input-label">{{translate('title')}}<span class="text-danger ml-1">*</span></label>
                                         <input type="text" name="title" class="form-control" placeholder="{{translate('New banner')}}" required>
                                     </div>
 
                                     <div class="form-group">
-                                        <label class="input-label">{{translate('item_Type')}}<span
-                                                class="input-label-secondary">*</span></label>
+                                        <label class="input-label">{{translate('item_Type')}}<span class="text-danger ml-1">*</span></label>
                                         <select name="item_type" class="custom-select js-select2-custom" onchange="show_item(this.value)">
                                             <option selected disabled>{{translate('select_item_type')}}</option>
                                             <option value="product">{{translate('product')}}</option>
@@ -44,8 +42,7 @@
                                         </select>
                                     </div>
                                     <div class="form-group" id="type-product">
-                                        <label class="input-label">{{translate('product')}} <span
-                                                class="input-label-secondary">*</span></label>
+                                        <label class="input-label">{{translate('product')}} <span class="text-danger ml-1">*</span></label>
                                         <select name="product_id" class="custom-select js-select2-custom">
                                             <option selected disabled>{{translate('select_a_product')}}</option>
                                             @foreach(\App\Model\Product::all() as $product)
@@ -54,8 +51,7 @@
                                         </select>
                                     </div>
                                     <div class="form-group" id="type-category" style="display: none">
-                                        <label class="input-label">{{translate('category')}} <span
-                                                class="input-label-secondary">*</span></label>
+                                        <label class="input-label">{{translate('category')}} <span class="text-danger ml-1">*</span></label>
                                         <select name="category_id" class="custom-select js-select2-custom">
                                             <option selected disabled>{{translate('select_a_category')}}</option>
                                             @foreach(\App\Model\Category::where('parent_id', 0)->get() as $category)
@@ -157,8 +153,7 @@
                                         <td>
                                             <label class="switcher">
                                                 <input class="switcher_input" type="checkbox" {{$banner['status']==1 ? 'checked' : ''}} id="{{$banner['id']}}"
-                                                    data-url="{{route('admin.banner.status',[$banner['id'],0])}}" onchange="status_change(this)"
-                                                >
+                                                    data-url="{{route('admin.banner.status',[$banner['id'],0])}}" onchange="status_change(this)">
                                                 <span class="switcher_control"></span>
                                             </label>
                                         </td>

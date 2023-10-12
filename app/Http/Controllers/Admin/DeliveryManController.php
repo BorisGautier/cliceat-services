@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\CentralLogics\Helpers;
 use App\Http\Controllers\Controller;
+use App\Mail\DMSelfRegistration;
 use App\Model\DeliveryMan;
 use App\Model\DMReview;
 use Brian2694\Toastr\Facades\Toastr;
@@ -162,7 +163,20 @@ class DeliveryManController extends Controller
         $dm->image = Helpers::upload('delivery-man/', 'png', $request->file('image'));
         $dm->password = bcrypt($request->password);
         $dm->application_status= 'approved';
+        $dm->language_code = $request->language_code ?? 'en';
         $dm->save();
+
+        try{
+            //send email
+            $emailServices = Helpers::get_business_settings('mail_config');
+            $mail_status = Helpers::get_business_settings('registration_mail_status_dm');
+            if(isset($emailServices['status']) && $emailServices['status'] == 1 && $mail_status == 1){
+                Mail::to($dm->email)->send(new DMSelfRegistration('approved', $dm->f_name.' '.$dm->l_name, $dm->language_code));
+            }
+
+        }catch(\Exception $ex){
+            info($ex);
+        }
 
         Toastr::success(translate('Delivery-man added successfully!'));
         return redirect('admin/delivery-man/list');
@@ -356,16 +370,30 @@ class DeliveryManController extends Controller
     {
         $delivery_man = $this->delivery_man->findOrFail($request->id);
         $delivery_man->application_status = $request->status;
-        if($request->status == 'approved') $delivery_man->is_active = 1;
+
+        if ($request->status == 'approved') {
+            $delivery_man->is_active = 1;
+        }
+
         $delivery_man->save();
 
-        try{
+        try {
             $emailServices = Helpers::get_business_settings('mail_config');
-            if (isset($emailServices['status']) && $emailServices['status'] == 1) {
-                Mail::to($delivery_man->email)->send(new \App\Mail\DMSelfRegistration($request->status, $delivery_man->f_name.' '.$delivery_man->l_name));
-            }
+            $approved_mail_status = Helpers::get_business_settings('approve_mail_status_dm');
+            $denied_mail_status = Helpers::get_business_settings('deny_mail_status_dm');
 
-        }catch(\Exception $ex){
+            if (isset($emailServices['status']) && $emailServices['status'] == 1) {
+                $mailType = ($request->status == 'approved') ? 'approved' : 'denied';
+                $fullName = $delivery_man->f_name . ' ' . $delivery_man->l_name;
+                $languageCode = $delivery_man->language_code;
+                if ($mailType == 'approved' && $approved_mail_status == 1){
+                    Mail::to($delivery_man->email)->send(new DMSelfRegistration($mailType, $fullName, $languageCode));
+                }
+                if ($mailType == 'denied' && $denied_mail_status == 1){
+                    Mail::to($delivery_man->email)->send(new DMSelfRegistration($mailType, $fullName, $languageCode));
+                }
+            }
+        } catch (\Exception $ex) {
             info($ex);
         }
 

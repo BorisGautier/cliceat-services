@@ -17,7 +17,6 @@ class BranchAdder
      */
     public function handle($request, Closure $next)
     {
-//        if (request()->is('/api/v1/products?*') || request()->is('/api/v1/products/*')) {
             Config::set('branch_id', $request->header('branch-id') );
             if (preg_match('/^[0-9A-F]{8}-[0-9A-F]{4}-4[0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i', Config::get('branch_id'))) {
                 $branch = Branch::where('id', $request->header('branch_id'))->first();

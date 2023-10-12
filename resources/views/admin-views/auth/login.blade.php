@@ -8,7 +8,9 @@
     <title>{{translate('Admin')}} | {{translate('Login')}}</title>
 
     <!-- Favicon -->
-    <link rel="shortcut icon" href="favicon.ico">
+    @php($icon = \App\Model\BusinessSetting::where(['key' => 'fav_icon'])->first()?->value??'')
+    <link rel="shortcut icon" href="">
+    <link rel="icon" type="image/x-icon" href="{{ asset('storage/restaurant/' . $icon ?? '') }}">
 
     <!-- Font -->
     <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&amp;display=swap" rel="stylesheet">
@@ -41,15 +43,12 @@
                     <!-- Form -->
                     <form class="" id="form-id" action="{{route('admin.auth.login')}}" method="post">
                         @csrf
-
                         <div class="auth-header">
                             <div class="mb-5">
                                 <h2 class="title">{{translate('sign_in')}}</h2>
                                 <div class="text-capitalize">{{translate('welcome_back')}}</div>
                                 <p class="mb-0 text-capitalize">{{translate('want_to_login_your_branches')}}?
-                                    <a href="{{route('branch.auth.login')}}">
-                                        {{translate('branch_login')}}
-                                    </a>
+                                    <a href="{{route('branch.auth.login')}}">{{translate('branch_login')}}</a>
                                 </p>
                                 <span class="badge mt-2">( {{translate('admin_or_employee_sign_in')}} )</span>
                             </div>
@@ -61,7 +60,7 @@
 
                             <input type="email" class="form-control form-control-lg" name="email" id="signinSrEmail"
                                 tabindex="1" placeholder="{{translate('email@address.com')}}" aria-label="email@address.com"
-                                required data-msg="Please enter a valid email address.">
+                                required data-msg="{{ translate('Please enter a valid email address') }}">
                         </div>
                         <!-- End Form Group -->
 
@@ -77,9 +76,9 @@
                                 <input type="password" class="js-toggle-password form-control form-control-lg"
                                     name="password" id="signupSrPassword" placeholder="{{translate('8+ characters required')}}"
                                     aria-label="8+ characters required" required
-                                    data-msg="Your password is invalid. Please try again."
+                                    data-msg="{{ translate('Your password is invalid. Please try again.') }}"
                                     data-hs-toggle-password-options='{
-                                                "target": "#changePassTarget",
+                                        "target": "#changePassTarget",
                                         "defaultClass": "tio-hidden-outlined",
                                         "showClass": "tio-visible-outlined",
                                         "classChangeTarget": "#changePassIcon"
@@ -99,7 +98,7 @@
                                 <input type="checkbox" class="custom-control-input" id="termsCheckbox"
                                     name="remember">
                                 <label class="custom-control-label text-muted" for="termsCheckbox">
-                                    {{translate('remember')}} {{translate('me')}}
+                                    {{translate('remember_me')}}
                                 </label>
                             </div>
                         </div>
@@ -124,8 +123,6 @@
                                 </div>
                             </div>
                         @endif
-
-
                         <button type="submit" class="btn btn-lg btn-block btn-primary">{{translate('sign_in')}}</button>
                     </form>
                     <!-- End Form -->

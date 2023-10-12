@@ -50,6 +50,7 @@
                                     <th>{{translate('SL')}}</th>
                                     <th>{{translate('product_name')}}</th>
                                     <th>{{translate('price')}}</th>
+                                    <th>{{translate('stock')}}</th>
                                     <th>{{translate('Availability')}}</th>
                                     <th class="text-center">{{translate('update_price')}}</th>
                                 </tr>
@@ -70,13 +71,19 @@
                                                 </div>
                                             </div>
                                         </td>
+
                                         @php($pb = json_decode($product->product_by_branch, true))
                                         @if(isset($pb[0]))
                                             <td>{{ Helpers::set_symbol($pb[0]['price']) }}</td>
                                         @else
                                             <td>{{ Helpers::set_symbol($product['price']) }}</td>
                                         @endif
-
+                                        <td>
+                                            <div><span class="">{{ translate('Stock Type') }} : {{ ucfirst($product->sub_branch_product?->stock_type) }}</span></div>
+                                            @if(isset($product->sub_branch_product) && $product->sub_branch_product->stock_type != 'unlimited')
+                                                <div><span class="">{{ translate('Stock') }} : {{ $product->sub_branch_product->stock - $product->sub_branch_product->sold_quantity }}</span></div>
+                                            @endif
+                                        </td>
                                         <td>
                                             <div>
                                                 <label class="switcher">

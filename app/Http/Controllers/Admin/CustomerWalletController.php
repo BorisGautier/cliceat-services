@@ -6,6 +6,7 @@ use App\CentralLogics\Helpers;
 use App\CentralLogics\CustomerLogic;
 use App\Http\Controllers\Controller;
 use App\Model\BusinessSetting;
+use App\Model\WalletBonus;
 use App\Model\WalletTransaction;
 use App\User;
 use Brian2694\Toastr\Facades\Toastr;
@@ -20,7 +21,8 @@ class CustomerWalletController extends Controller
 {
     public function __construct(
         private WalletTransaction $wallet_transaction,
-        private User              $user
+        private User              $user,
+        private WalletBonus $wallet_bonus
     )
     {
     }

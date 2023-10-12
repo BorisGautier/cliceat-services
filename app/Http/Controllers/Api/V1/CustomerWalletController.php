@@ -6,6 +6,7 @@ use App\CentralLogics\CustomerLogic;
 use App\CentralLogics\Helpers;
 use App\Http\Controllers\Controller;
 use App\Model\BusinessSetting;
+use App\Model\WalletBonus;
 use App\Model\WalletTransaction;
 use App\User;
 use Illuminate\Http\JsonResponse;
@@ -18,10 +19,8 @@ class CustomerWalletController extends Controller
         private User              $user,
         private BusinessSetting   $business_setting,
         private WalletTransaction $wallet_transaction,
-    )
-    {
-    }
-
+        private WalletBonus $wallet_bonus
+    ){}
 
     /**
      * @param Request $request
@@ -73,7 +72,27 @@ class CustomerWalletController extends Controller
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
 
+        $transaction_type = $request['transaction_type'];
+
         $paginator = $this->wallet_transaction
+            ->when(isset($transaction_type) && ($transaction_type == 'add_fund_by_admin'), function ($query) {
+                return $query->where('transaction_type', 'add_fund_by_admin');
+            })
+            ->when(isset($transaction_type) && ($transaction_type == 'add_fund'), function ($query) {
+                return $query->where('transaction_type', 'add_fund');
+            })
+            ->when(isset($transaction_type) && ($transaction_type == 'loyalty_point_to_wallet'), function ($query) {
+                return $query->where('transaction_type', 'loyalty_point_to_wallet');
+            })
+            ->when(isset($transaction_type) && ($transaction_type == 'referral_order_place'), function ($query) {
+                return $query->where('transaction_type', 'referral_order_place');
+            })
+            ->when(isset($transaction_type) && ($transaction_type == 'add_fund_bonus'), function ($query) {
+                return $query->where('transaction_type', 'add_fund_bonus');
+            })
+            ->when(isset($transaction_type) && ($transaction_type == 'order_place'), function ($query) {
+                return $query->where('transaction_type', 'order_place');
+            })
             ->where('user_id', $request->user()->id)
             ->latest()
             ->paginate($request->limit, ['*'], 'page', $request->offset);
@@ -86,5 +105,20 @@ class CustomerWalletController extends Controller
         ];
 
         return response()->json($data, 200);
+    }
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function wallet_bonus_list(): JsonResponse
+    {
+        $bonuses = $this->wallet_bonus->active()
+            ->where('start_date', '<=', now()->format('Y-m-d'))
+            ->where('end_date', '>=', now()->format('Y-m-d'))
+            ->latest()
+            ->get();
+
+        return response()->json($bonuses, 200);
     }
 }

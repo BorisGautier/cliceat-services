@@ -34,7 +34,18 @@ class CustomerController extends Controller
      */
     public function address_list(Request $request): JsonResponse
     {
-        return response()->json($this->customer_address->where('user_id', $request->user()->id)->latest()->get(), 200);
+        $validator = Validator::make($request->all(), [
+            'guest_id' => auth('api')->user() ? 'nullable' : 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json(['errors' => Helpers::error_processor($validator)], 403);
+        }
+
+        $user_id = (bool)auth('api')->user() ? auth('api')->user()->id : $request['guest_id'];
+        $user_type = (bool)auth('api')->user() ? 0 : 1;
+
+        return response()->json($this->customer_address->where(['user_id' => $user_id, 'is_guest' => $user_type])->latest()->get(), 200);
     }
 
     /**
@@ -48,14 +59,20 @@ class CustomerController extends Controller
             'address_type' => 'required',
             'contact_person_number' => 'required',
             'address' => 'required',
+            'guest_id' => auth('api')->user() ? 'nullable' : 'required',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
 
+        $user_id = (bool)auth('api')->user() ? auth('api')->user()->id : $request['guest_id'];
+        $user_type = (bool)auth('api')->user() ? 0 : 1;
+
         $this->customer_address->insert([
-            'user_id' => $request->user()->id,
+            //'user_id' => $request->user()->id,
+            'user_id' => $user_id,
+            'is_guest' => $user_type,
             'contact_person_name' => $request->contact_person_name,
             'contact_person_number' => $request->contact_person_number,
             'floor' => $request->floor,
@@ -84,14 +101,19 @@ class CustomerController extends Controller
             'address_type' => 'required',
             'contact_person_number' => 'required',
             'address' => 'required',
+            'guest_id' => auth('api')->user() ? 'nullable' : 'required',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
 
+        $user_id = (bool)auth('api')->user() ? auth('api')->user()->id : $request['guest_id'];
+        $user_type = (bool)auth('api')->user() ? 0 : 1;
+
         $this->customer_address->where('id', $id)->update([
-            'user_id' => $request->user()->id,
+            'user_id' => $user_id,
+            'is_guest' => $user_type,
             'contact_person_name' => $request->contact_person_name,
             'contact_person_number' => $request->contact_person_number,
             'floor' => $request->floor,
@@ -116,14 +138,18 @@ class CustomerController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'address_id' => 'required',
+            'guest_id' => auth('api')->user() ? 'nullable' : 'required',
         ]);
 
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
 
-        if ($this->customer_address->where(['id' => $request['address_id'], 'user_id' => $request->user()->id])->first()) {
-            $this->customer_address->where(['id' => $request['address_id'], 'user_id' => $request->user()->id])->delete();
+        $user_id = (bool)auth('api')->user() ? auth('api')->user()->id : $request['guest_id'];
+        $user_type = (bool)auth('api')->user() ? 0 : 1;
+
+        if ($this->customer_address->where(['id' => $request['address_id'], 'user_id' => $user_id, 'is_guest' => $user_type])->first()) {
+            $this->customer_address->where(['id' => $request['address_id'], 'user_id' => $user_id, 'is_guest' => $user_type])->delete();
             return response()->json(['message' => translate('successfully removed!')], 200);
         }
 
@@ -226,6 +252,7 @@ class CustomerController extends Controller
 
         $this->user->where('id', $request->user()->id)->update([
             'cm_firebase_token' => $request['cm_firebase_token'],
+            'language_code' => $request->header('X-localization') ?? 'en'
         ]);
 
         return response()->json(['message' => translate('update_success')], 200);

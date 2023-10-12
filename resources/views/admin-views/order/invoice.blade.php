@@ -63,7 +63,6 @@
                         Phone : {{\App\Model\BusinessSetting::where(['key'=>'phone'])->first()->value}}
                     </h5>
                 </div>
-
                 <hr class="text-dark hr-style-1">
 
                 <div class="row mt-4">
@@ -76,17 +75,34 @@
                         </h5>
                     </div>
                     <div class="col-12">
-                        @if(isset($order->customer))
-                            <h5>
-                                {{translate('Customer Name : ')}}<span class="font-weight-normal">{{$order->customer['f_name'].' '.$order->customer['l_name']}}</span>
-                            </h5>
-                            <h5>
-                                {{translate('Phone : ')}}<span class="font-weight-normal">{{$order->customer['phone']}}</span>
-                            </h5>
-                            @php($address=\App\Model\CustomerAddress::find($order['delivery_address_id']))
-                            <h5>
-                                {{translate('Address : ')}}<span class="font-weight-normal">{{isset($address)?$address['address']:''}}</span>
-                            </h5>
+                        @if($order->is_guest == 0)
+                            @if(isset($order->customer))
+                                <h5>
+                                    {{translate('Customer Name : ')}}<span class="font-weight-normal">{{$order->customer['f_name'].' '.$order->customer['l_name']}}</span>
+                                </h5>
+                                <h5>
+                                    {{translate('Phone : ')}}<span class="font-weight-normal">{{$order->customer['phone']}}</span>
+                                </h5>
+                                @php($address=\App\Model\CustomerAddress::find($order['delivery_address_id']))
+                                <h5>
+                                    {{translate('Address : ')}}<span class="font-weight-normal">{{isset($address)?$address['address']:''}}</span>
+                                </h5>
+                            @endif
+                        @endif
+                        @if($order->is_guest == 1)
+                            @if($order->order_type == 'delivery')
+                                    @if(isset($order->delivery_address))
+                                        <h5>
+                                            {{translate('Customer Name : ')}}<span class="font-weight-normal">{{$order->delivery_address['contact_person_name']}}</span>
+                                        </h5>
+                                        <h5>
+                                            {{translate('Phone : ')}}<span class="font-weight-normal">{{$order->delivery_address['contact_person_number']}}</span>
+                                        </h5>
+                                        <h5>
+                                            {{translate('Address : ')}}<span class="font-weight-normal">{{$order->delivery_address['address']}}</span>
+                                        </h5>
+                                    @endif
+                            @endif
                         @endif
                     </div>
                 </div>
@@ -189,8 +205,8 @@
                 </table>
 
 
-                <div class="row justify-content-md-end mb-3" style="width: 99%">
-                    <div class="col-md-7 col-lg-7">
+                <div class="row justify-content-md-end mb-3 m-0" style="width: 99%">
+                    <div class="col-md-10 p-0">
                         <dl class="row text-right" style="color: black!important;">
                             <dt class="col-6">{{translate('Items Price:')}}</dt>
                             <dd class="col-6">{{ \App\CentralLogics\Helpers::set_symbol($sub_total) }}</dd>
@@ -224,6 +240,36 @@
 
                             <dt class="col-6" style="font-size: 20px">{{translate('Total:')}}</dt>
                             <dd class="col-6" style="font-size: 20px">{{ \App\CentralLogics\Helpers::set_symbol($sub_total+$del_c+$total_tax+$add_ons_cost-$order['coupon_discount_amount']-$order['extra_discount']+$add_ons_tax_cost) }}</dd>
+
+                            <!-- partial payment-->
+                            @if ($order->order_partial_payments->isNotEmpty())
+                                @foreach($order->order_partial_payments as $partial)
+                                    <dt class="col-6">
+                                        <div class="">
+                                            <span>
+                                                {{translate('Paid By')}} ({{str_replace('_', ' ',$partial->paid_with)}})</span>
+                                            <span>:</span>
+                                        </div>
+                                    </dt>
+                                    <dd class="col-6 text-dark text-right">
+                                        {{ \App\CentralLogics\Helpers::set_symbol($partial->paid_amount) }}
+                                    </dd>
+                                @endforeach
+                                    <?php
+                                    $due_amount = 0;
+                                    $due_amount = $order->order_partial_payments->first()?->due_amount;
+                                    ?>
+                                <dt class="col-6">
+                                    <div class="">
+                                            <span>
+                                                {{translate('Due Amount')}}</span>
+                                        <span>:</span>
+                                    </div>
+                                </dt>
+                                <dd class="col-6 text-dark text-right">
+                                    {{ \App\CentralLogics\Helpers::set_symbol($due_amount) }}
+                                </dd>
+                            @endif
                         </dl>
                     </div>
                 </div>

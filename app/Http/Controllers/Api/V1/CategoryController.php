@@ -24,7 +24,7 @@ class CategoryController extends Controller
     public function get_categories(): JsonResponse
     {
         try {
-            $categories = $this->category->where(['position' => 0, 'status' => 1])->get();
+            $categories = $this->category->where(['position' => 0, 'status' => 1])->orderBY('priority', 'ASC')->get();
             return response()->json($categories, 200);
 
         } catch (\Exception $e) {
@@ -55,7 +55,8 @@ class CategoryController extends Controller
     public function get_products($id, Request $request): JsonResponse
     {
         $product_type = $request['product_type'];
-        return response()->json(Helpers::product_data_formatting(CategoryLogic::products($id, $product_type), true), 200);
+        $search = $request['search'];
+        return response()->json(Helpers::product_data_formatting(CategoryLogic::products($id, $product_type, $search), true), 200);
     }
 
     /**

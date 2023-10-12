@@ -7,6 +7,9 @@
             <li class="{{Request::is('admin/business-settings/restaurant/delivery-fee-setup')? 'active' : ''}}"><a href="{{route('admin.business-settings.restaurant.delivery-fee-setup')}}">{{translate('Delivery_Fee_Setup')}}</a></li>
             <li class="{{Request::is('admin/business-settings/restaurant/cookies-setup')? 'active' : ''}}"><a href="{{route('admin.business-settings.restaurant.cookies-setup')}}">{{translate('Cookies Setup')}}</a></li>
             <li class="{{Request::is('admin/business-settings/restaurant/otp-setup')? 'active' : ''}}"><a href="{{route('admin.business-settings.restaurant.otp-setup')}}">{{translate('Login and OTP Setup')}}</a></li>
+            <li class="{{Request::is('admin/business-settings/restaurant/customer-settings')? 'active' : ''}}"><a href="{{route('admin.business-settings.restaurant.customer.settings')}}">{{translate('Customers')}}</a></li>
+            <li class="{{Request::is('admin/business-settings/restaurant/order-index')? 'active' : ''}}"><a href="{{route('admin.business-settings.restaurant.order-index')}}">{{translate('Orders')}}</a></li>
+            <li class="{{Request::is('admin/business-settings/restaurant/qrcode-index')? 'active' : ''}}"><a href="{{route('admin.business-settings.restaurant.qrcode-index')}}">{{translate('QR Code')}}</a></li>
         </ul>
     </div>
 </div>

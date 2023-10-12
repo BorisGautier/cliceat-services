@@ -15,24 +15,22 @@ class CouponController extends Controller
     public function __construct(
         private Coupon $coupon,
         private Order  $order
-
-    )
-    {
-    }
-
+    ){}
 
     /**
      * @return JsonResponse
      */
     public function list(): JsonResponse
     {
-        try {
-            $coupon = $this->coupon->active()->get();
-            return response()->json($coupon, 200);
+        $couponQuery = $this->coupon->active();
 
-        } catch (\Exception $e) {
-            return response()->json(['errors' => $e], 403);
+        if (auth('api')->user()) {
+            $coupon = $couponQuery->get();
+        } else {
+            $coupon = $couponQuery->default()->get();
         }
+
+        return response()->json($coupon, 200);
     }
 
     /**
@@ -43,6 +41,7 @@ class CouponController extends Controller
     {
         $validator = Validator::make($request->all(), [
             'code' => 'required',
+            'guest_id' => auth('api')->user() ? 'nullable' : 'required',
         ]);
 
         if ($validator->errors()->count() > 0) {
@@ -53,9 +52,18 @@ class CouponController extends Controller
             $coupon = $this->coupon->active()->where(['code' => $request['code']])->first();
 
             if (isset($coupon)) {
+
                 //first order coupon type
                 if ($coupon['coupon_type'] == 'first_order') {
-                    $total = $this->order->where(['user_id' => $request->user()->id])->count();
+                   if (!(bool)auth('api')->user()){
+                       return response()->json([
+                           'errors' => [
+                               ['code' => 'coupon', 'message' => translate('This coupon in not valid for you!')]
+                           ]
+                       ], 401);
+                   }
+
+                    $total = $this->order->where(['user_id' => auth('api')->user()->id, 'is_guest' => 0])->count();
                     if ($total == 0) {
                         return response()->json($coupon, 200);
                     } else {
@@ -71,7 +79,10 @@ class CouponController extends Controller
                 if ($coupon['limit'] == null) {
                     return response()->json($coupon, 200);
                 } else {
-                    $total = $this->order->where(['user_id' => $request->user()->id, 'coupon_code' => $request['code']])->count();
+                    $user_id = (bool)auth('api')->user() ? auth('api')->user()->id : $request['guest_id'];
+                    $user_type = (bool)auth('api')->user() ? 0 : 1;
+
+                    $total = $this->order->where(['user_id' => $user_id, 'coupon_code' => $request['code'], 'is_guest' =>$user_type])->count();
                     if ($total < $coupon['limit']) {
                         return response()->json($coupon, 200);
                     } else {

@@ -18,6 +18,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Contracts\Support\Renderable;
+use App\Models\Setting;
+use Illuminate\Support\Facades\Validator;
+use App\Model\Translation;
+
 
 class BusinessSettingsController extends Controller
 {
@@ -98,6 +102,9 @@ class BusinessSettingsController extends Controller
             $request['phone_verification'] = 1;
         }
 
+        $request['guest_checkout'] = $request->has('guest_checkout') ? 1 : 0;
+        $request['partial_payment'] = $request->has('partial_payment') ? 1 : 0;
+
         $this->business_setting->updateOrInsert(['key' => 'country'], [
             'value' => $request['country']
         ]);
@@ -163,10 +170,6 @@ class BusinessSettingsController extends Controller
             'value' => $request['footer_text'],
         ]);
 
-        $this->business_setting->updateOrInsert(['key' => 'minimum_order_value'], [
-            'value' => $request['minimum_order_value'],
-        ]);
-
         $this->business_setting->updateOrInsert(['key' => 'point_per_currency'], [
             'value' => $request['point_per_currency'],
         ]);
@@ -175,16 +178,8 @@ class BusinessSettingsController extends Controller
             'value' => $request['pagination_limit'],
         ]);
 
-        $this->business_setting->updateOrInsert(['key' => 'default_preparation_time'], [
-            'value' => $request['default_preparation_time'],
-        ]);
-
         $this->business_setting->updateOrInsert(['key' => 'decimal_point_settings'], [
             'value' => $request['decimal_point_settings']
-        ]);
-
-        $this->business_setting->updateOrInsert(['key' => 'schedule_order_slot_duration'], [
-            'value' => $request['schedule_order_slot_duration']
         ]);
 
         $this->business_setting->updateOrInsert(['key' => 'time_format'], [
@@ -202,6 +197,18 @@ class BusinessSettingsController extends Controller
 
         $this->business_setting->updateOrInsert(['key' => 'toggle_veg_non_veg'], [
             'value' => $request['toggle_veg_non_veg'],
+        ]);
+
+        $this->business_setting->updateOrInsert(['key' => 'guest_checkout'], [
+            'value' => $request['guest_checkout'],
+        ]);
+
+        $this->business_setting->updateOrInsert(['key' => 'partial_payment'], [
+            'value' => $request['partial_payment'],
+        ]);
+
+        $this->business_setting->updateOrInsert(['key' => 'partial_payment_combine_with'], [
+            'value' => $request['partial_payment_combine_with'],
         ]);
 
         Toastr::success(translate('Settings updated!'));
@@ -267,7 +274,58 @@ class BusinessSettingsController extends Controller
      */
     public function payment_index(): Renderable
     {
-        return view('admin-views.business-settings.payment-index');
+        $published_status = 0; // Set a default value
+        $payment_published_status = config('get_payment_publish_status');
+        if (isset($payment_published_status[0]['is_published'])) {
+            $published_status = $payment_published_status[0]['is_published'];
+        }
+
+        $routes = config('addon_admin_routes');
+        $desiredName = 'payment_setup';
+        $payment_url = '';
+
+        foreach ($routes as $routeArray) {
+            foreach ($routeArray as $route) {
+                if ($route['name'] === $desiredName) {
+                    $payment_url = $route['url'];
+                    break 2;
+                }
+            }
+        }
+
+        $data_values = Setting::whereIn('settings_type', ['payment_config'])
+            ->whereIn('key_name', ['ssl_commerz','paypal','stripe','razor_pay','senang_pay','paystack','paymob_accept','flutterwave','bkash','mercadopago'])
+            ->get();
+
+        return view('admin-views.business-settings.payment-index',  compact('published_status', 'payment_url', 'data_values'));
+    }
+
+    public function payment_method_status(Request $request)
+    {
+        $request['cash_on_delivery'] = $request->has('cash_on_delivery') ? 1 : 0;
+        $request['digital_payment'] = $request->has('digital_payment') ? 1 : 0;
+        $request['offline_payment'] = $request->has('offline_payment') ? 1 : 0;
+
+        $cod = $this->business_setting->updateOrInsert(['key' => 'cash_on_delivery'],[
+            'value' => json_encode([
+                'status' => $request['cash_on_delivery']
+                ])
+            ]);
+
+        $cod = $this->business_setting->updateOrInsert(['key' => 'digital_payment'],[
+            'value' => json_encode([
+                'status' => $request['digital_payment']
+                ])
+            ]);
+
+        $cod = $this->business_setting->updateOrInsert(['key' => 'offline_payment'],[
+            'value' => json_encode([
+                'status' => $request['offline_payment']
+                ])
+            ]);
+
+        Toastr::success(translate('updated successfully!'));
+        return back();
     }
 
     /**
@@ -275,49 +333,11 @@ class BusinessSettingsController extends Controller
      * @param $name
      * @return RedirectResponse
      */
-    public function payment_update(Request $request, $name): RedirectResponse
+
+    /*
+     public function payment_update(Request $request, $name): RedirectResponse
     {
-        if ($name == 'cash_on_delivery') {
-            $payment = $this->business_setting->where('key', 'cash_on_delivery')->first();
-            if (isset($payment) == false) {
-                $this->business_setting->insert([
-                    'key' => 'cash_on_delivery',
-                    'value' => json_encode([
-                        'status' => $request['status'],
-                    ]),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            } else {
-                $this->business_setting->where(['key' => 'cash_on_delivery'])->update([
-                    'key' => 'cash_on_delivery',
-                    'value' => json_encode([
-                        'status' => $request['status'],
-                    ]),
-                    'updated_at' => now(),
-                ]);
-            }
-        } elseif ($name == 'digital_payment') {
-            $payment = $this->business_setting->where('key', 'digital_payment')->first();
-            if (isset($payment) == false) {
-                $this->business_setting->insert([
-                    'key' => 'digital_payment',
-                    'value' => json_encode([
-                        'status' => $request['status'],
-                    ]),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ]);
-            } else {
-                $this->business_setting->where(['key' => 'digital_payment'])->update([
-                    'key' => 'digital_payment',
-                    'value' => json_encode([
-                        'status' => $request['status'],
-                    ]),
-                    'updated_at' => now(),
-                ]);
-            }
-        } elseif ($name == 'ssl_commerz_payment') {
+        if ($name == 'ssl_commerz_payment') {
             $payment = $this->business_setting->where('key', 'ssl_commerz_payment')->first();
             if (isset($payment) == false) {
                 $this->business_setting->insert([
@@ -526,6 +546,122 @@ class BusinessSettingsController extends Controller
 
         Toastr::success(translate('payment settings updated!'));
         return back();
+    }*/
+
+    public function payment_config_update(Request $request)
+    {
+        $validation = [
+            'gateway' => 'required|in:ssl_commerz,paypal,stripe,razor_pay,senang_pay,paystack,paymob_accept,flutterwave,bkash,mercadopago',
+            'mode' => 'required|in:live,test'
+        ];
+
+        $request['status'] = $request->has('status') ? 1 : 0;
+
+        $additional_data = [];
+
+        if ($request['gateway'] == 'ssl_commerz') {
+            $additional_data = [
+               'status' => 'required|in:1,0',
+                'store_id' => 'required',
+                'store_password' => 'required'
+            ];
+        } elseif ($request['gateway'] == 'paypal') {
+            $additional_data = [
+                'status' => 'required|in:1,0',
+                'client_id' => 'required',
+                'client_secret' => 'required'
+            ];
+        } elseif ($request['gateway'] == 'stripe') {
+            $additional_data = [
+                'status' => 'required|in:1,0',
+                'api_key' => 'required',
+                'published_key' => 'required',
+            ];
+        } elseif ($request['gateway'] == 'razor_pay') {
+            $additional_data = [
+                'status' => 'required|in:1,0',
+                'api_key' => 'required',
+                'api_secret' => 'required'
+            ];
+        } elseif ($request['gateway'] == 'senang_pay') {
+            $additional_data = [
+                'status' => 'required|in:1,0',
+                'callback_url' => 'required',
+                'secret_key' => 'required',
+                'merchant_id' => 'required'
+            ];
+        }elseif ($request['gateway'] == 'paystack') {
+            $additional_data = [
+                'status' => 'required|in:1,0',
+                'public_key' => 'required',
+                'secret_key' => 'required',
+                'merchant_email' => 'required'
+            ];
+        } elseif ($request['gateway'] == 'paymob_accept') {
+            $additional_data = [
+                'status' => 'required|in:1,0',
+                'callback_url' => 'required',
+                'api_key' => 'required',
+                'iframe_id' => 'required',
+                'integration_id' => 'required',
+                'hmac' => 'required'
+            ];
+        } elseif ($request['gateway'] == 'mercadopago') {
+            $additional_data = [
+                'status' => 'required|in:1,0',
+                'access_token' => 'required',
+                'public_key' => 'required'
+            ];
+        } elseif ($request['gateway'] == 'flutterwave') {
+            $additional_data = [
+                'status' => 'required|in:1,0',
+                'secret_key' => 'required',
+                'public_key' => 'required',
+                'hash' => 'required'
+            ];
+        }  elseif ($request['gateway'] == 'bkash') {
+            $additional_data = [
+                'status' => 'required|in:1,0',
+                'app_key' => 'required',
+                'app_secret' => 'required',
+                'username' => 'required',
+                'password' => 'required',
+            ];
+        }
+
+        $request->validate(array_merge($validation, $additional_data));
+
+        $settings = Setting::where('key_name', $request['gateway'])->where('settings_type', 'payment_config')->first();
+
+        $additional_data_image = $settings['additional_data'] != null ? json_decode($settings['additional_data']) : null;
+
+        if ($request->has('gateway_image')) {
+            $gateway_image = Helpers::upload('payment_modules/gateway_image/', 'png', $request['gateway_image']);
+            //$gateway_image = Helpers::upload('payment_modules/gateway_image/', 'png', $request['gateway_image'], $additional_data_image != null ? $additional_data_image->gateway_image : '');
+        } else {
+            $gateway_image = $additional_data_image != null ? $additional_data_image->gateway_image : '';
+        }
+
+        $payment_additional_data = [
+            'gateway_title' => $request['gateway_title'],
+            'gateway_image' => $gateway_image,
+        ];
+
+        $validator = Validator::make($request->all(), array_merge($validation, $additional_data));
+
+        Setting::updateOrCreate(['key_name' => $request['gateway'], 'settings_type' => 'payment_config'], [
+            'key_name' => $request['gateway'],
+            'live_values' => $validator->validate(),
+            'test_values' => $validator->validate(),
+            'settings_type' => 'payment_config',
+            'mode' => $request['mode'],
+            'is_active' => $request->status,
+            'additional_data' => json_encode($payment_additional_data),
+        ]);
+
+        Toastr::success(GATEWAYS_DEFAULT_UPDATE_200['message']);
+        return back();
+
     }
 
     /**
@@ -822,25 +958,8 @@ class BusinessSettingsController extends Controller
      */
     public function fcm_index(): Renderable
     {
-        if ($this->business_setting->where(['key' => 'fcm_topic'])->first() == false) {
-            $this->business_setting->insert([
-                'key' => 'fcm_topic',
-                'value' => '',
-            ]);
-        }
-        if ($this->business_setting->where(['key' => 'fcm_project_id'])->first() == false) {
-            $this->business_setting->insert([
-                'key' => 'fcm_project_id',
-                'value' => '',
-            ]);
-        }
-        if ($this->business_setting->where(['key' => 'push_notification_key'])->first() == false) {
-            $this->business_setting->insert([
-                'key' => 'push_notification_key',
-                'value' => '',
-            ]);
-        }
-
+        $data = $this->business_setting->with('translations')->where(['key' => 'order_pending_message'])->first();
+        //dd($data);
         if ($this->business_setting->where(['key' => 'order_pending_message'])->first() == false) {
             $this->business_setting->insert([
                 'key' => 'order_pending_message',
@@ -931,7 +1050,7 @@ class BusinessSettingsController extends Controller
             ]);
         }
 
-        if ($this->business_setting->where(['key' => 'customer_notify_message_for_time_change'])->first() == false) {
+        if (!$this->business_setting->where(['key' => 'customer_notify_message_for_time_change'])->first()) {
             $this->business_setting->insert([
                 'key' => 'customer_notify_message_for_time_change',
                 'value' => json_encode([
@@ -942,6 +1061,29 @@ class BusinessSettingsController extends Controller
         }
 
         return view('admin-views.business-settings.fcm-index');
+    }
+    public function fcm_config()
+    {
+        if ($this->business_setting->where(['key' => 'fcm_topic'])->first() == false) {
+            $this->business_setting->insert([
+                'key' => 'fcm_topic',
+                'value' => '',
+            ]);
+        }
+        if ($this->business_setting->where(['key' => 'fcm_project_id'])->first() == false) {
+            $this->business_setting->insert([
+                'key' => 'fcm_project_id',
+                'value' => '',
+            ]);
+        }
+        if ($this->business_setting->where(['key' => 'push_notification_key'])->first() == false) {
+            $this->business_setting->insert([
+                'key' => 'push_notification_key',
+                'value' => '',
+            ]);
+        }
+
+        return view('admin-views.business-settings.fcm-config');
     }
 
     public function update_fcm(Request $request)
@@ -964,12 +1106,32 @@ class BusinessSettingsController extends Controller
      */
     public function update_fcm_messages(Request $request): RedirectResponse
     {
-        $this->business_setting->updateOrInsert(['key' => 'order_pending_message'], [
+        //dd($request->all());
+       $this->business_setting->updateOrInsert(['key' => 'order_pending_message'], [
             'value' => json_encode([
                 'status' => $request['pending_status'] == 1 ? 1 : 0,
                 'message' => $request['pending_message'],
             ]),
         ]);
+        $pending_order = $this->business_setting->where('key', 'order_pending_message')->first();
+
+        foreach ($request->lang as $index => $key) {
+            if ($key === 'default') {
+                continue;
+            }
+            $message = $request->order_pending_message[$index - 1] ?? null;
+            if ($message !== null) {
+                Translation::updateOrInsert(
+                    [
+                        'translationable_type' => 'App\Model\BusinessSetting',
+                        'translationable_id' => $pending_order->id,
+                        'locale' => $key,
+                        'key' => 'order_pending_message'
+                    ],
+                    ['value' => $message]
+                );
+            }
+        }
 
         $this->business_setting->updateOrInsert(['key' => 'order_confirmation_msg'], [
             'value' => json_encode([
@@ -977,6 +1139,25 @@ class BusinessSettingsController extends Controller
                 'message' => $request['confirm_message'],
             ]),
         ]);
+        $confirm_order = $this->business_setting->where('key', 'order_confirmation_msg')->first();
+
+        foreach ($request->lang as $index => $key) {
+            if ($key === 'default') {
+                continue;
+            }
+            $message = $request->order_confirmation_message[$index-1] ?? null;
+            if ( $message !== null) {
+                Translation::updateOrInsert(
+                    [
+                        'translationable_type' => 'App\Model\BusinessSetting',
+                        'translationable_id' => $confirm_order->id,
+                        'locale' => $key,
+                        'key' => 'order_confirmation_message'
+                    ],
+                    ['value' => $message]
+                );
+            }
+        }
 
         $this->business_setting->updateOrInsert(['key' => 'order_processing_message'], [
             'value' => json_encode([
@@ -984,6 +1165,26 @@ class BusinessSettingsController extends Controller
                 'message' => $request['processing_message'],
             ]),
         ]);
+        $processing_order = $this->business_setting->where('key', 'order_processing_message')->first();
+
+        foreach ($request->lang as $index => $key) {
+            if ($key === 'default') {
+                continue;
+            }
+            $message = $request->order_processing_message[$index-1] ?? null;
+            if ( $message !== null) {
+                Translation::updateOrInsert(
+                    [
+                        'translationable_type' => 'App\Model\BusinessSetting',
+                        'translationable_id' => $processing_order->id,
+                        'locale' => $key,
+                        'key' => 'order_processing_message'
+                    ],
+                    ['value' => $message]
+                );
+            }
+        }
+
 
         $this->business_setting->updateOrInsert(['key' => 'out_for_delivery_message'], [
             'value' => json_encode([
@@ -991,6 +1192,25 @@ class BusinessSettingsController extends Controller
                 'message' => $request['out_for_delivery_message'],
             ]),
         ]);
+        $out_for_delivery = $this->business_setting->where('key', 'out_for_delivery_message')->first();
+
+        foreach ($request->lang as $index => $key) {
+            if ($key === 'default') {
+                continue;
+            }
+            $message = $request->order_out_for_delivery_message[$index-1] ?? null;
+            if ( $message !== null) {
+                Translation::updateOrInsert(
+                    [
+                        'translationable_type' => 'App\Model\BusinessSetting',
+                        'translationable_id' => $out_for_delivery->id,
+                        'locale' => $key,
+                        'key' => 'order_out_for_delivery_message'
+                    ],
+                    ['value' => $message]
+                );
+            }
+        }
 
         $this->business_setting->updateOrInsert(['key' => 'order_delivered_message'], [
             'value' => json_encode([
@@ -998,6 +1218,24 @@ class BusinessSettingsController extends Controller
                 'message' => $request['delivered_message'],
             ]),
         ]);
+        $order_delivered = $this->business_setting->where('key', 'order_delivered_message')->first();
+        foreach ($request->lang as $index => $key) {
+            if ($key === 'default') {
+                continue;
+            }
+            $message = $request->order_delivered_message[$index-1] ?? null;
+            if ( $message !== null) {
+                Translation::updateOrInsert(
+                    [
+                        'translationable_type' => 'App\Model\BusinessSetting',
+                        'translationable_id' => $order_delivered->id,
+                        'locale' => $key,
+                        'key' => 'order_delivered_message'
+                    ],
+                    ['value' => $message]
+                );
+            }
+        }
 
         $this->business_setting->updateOrInsert(['key' => 'delivery_boy_assign_message'], [
             'value' => json_encode([
@@ -1005,6 +1243,24 @@ class BusinessSettingsController extends Controller
                 'message' => $request['delivery_boy_assign_message'],
             ]),
         ]);
+        $dm_assign = $this->business_setting->where('key', 'delivery_boy_assign_message')->first();
+        foreach ($request->lang as $index => $key) {
+            if ($key === 'default') {
+                continue;
+            }
+            $message = $request->assign_deliveryman_message[$index-1] ?? null;
+            if ( $message !== null) {
+                Translation::updateOrInsert(
+                    [
+                        'translationable_type' => 'App\Model\BusinessSetting',
+                        'translationable_id' => $dm_assign->id,
+                        'locale' => $key,
+                        'key' => 'assign_deliveryman_message'
+                    ],
+                    ['value' => $message]
+                );
+            }
+        }
 
         $this->business_setting->updateOrInsert(['key' => 'delivery_boy_start_message'], [
             'value' => json_encode([
@@ -1012,6 +1268,24 @@ class BusinessSettingsController extends Controller
                 'message' => $request['delivery_boy_start_message'],
             ]),
         ]);
+        $dm_start = $this->business_setting->where('key', 'delivery_boy_start_message')->first();
+        foreach ($request->lang as $index => $key) {
+            if ($key === 'default') {
+                continue;
+            }
+            $message = $request->deliveryman_start_message[$index-1] ?? null;
+            if ( $message !== null) {
+                Translation::updateOrInsert(
+                    [
+                        'translationable_type' => 'App\Model\BusinessSetting',
+                        'translationable_id' => $dm_start->id,
+                        'locale' => $key,
+                        'key' => 'deliveryman_start_message'
+                    ],
+                    ['value' => $message]
+                );
+            }
+        }
 
         $this->business_setting->updateOrInsert(['key' => 'delivery_boy_delivered_message'], [
             'value' => json_encode([
@@ -1019,6 +1293,24 @@ class BusinessSettingsController extends Controller
                 'message' => $request['delivery_boy_delivered_message'],
             ]),
         ]);
+        $dm_delivered= $this->business_setting->where('key', 'delivery_boy_delivered_message')->first();
+        foreach ($request->lang as $index => $key) {
+            if ($key === 'default') {
+                continue;
+            }
+            $message = $request->deliveryman_delivered_message[$index-1] ?? null;
+            if ( $message !== null) {
+                Translation::updateOrInsert(
+                    [
+                        'translationable_type' => 'App\Model\BusinessSetting',
+                        'translationable_id' => $dm_delivered->id,
+                        'locale' => $key,
+                        'key' => 'deliveryman_delivered_message'
+                    ],
+                    ['value' => $message]
+                );
+            }
+        }
 
         $this->business_setting->updateOrInsert(['key' => 'customer_notify_message'], [
             'value' => json_encode([
@@ -1026,6 +1318,24 @@ class BusinessSettingsController extends Controller
                 'message' => $request['customer_notify_message'],
             ]),
         ]);
+        $customer_notify= $this->business_setting->where('key', 'customer_notify_message')->first();
+        foreach ($request->lang as $index => $key) {
+            if ($key === 'default') {
+                continue;
+            }
+            $message = $request->customer_notification_message[$index-1] ?? null;
+            if ( $message !== null) {
+                Translation::updateOrInsert(
+                    [
+                        'translationable_type' => 'App\Model\BusinessSetting',
+                        'translationable_id' => $customer_notify->id,
+                        'locale' => $key,
+                        'key' => 'customer_notification_message'
+                    ],
+                    ['value' => $message]
+                );
+            }
+        }
 
         $this->business_setting->updateOrInsert(['key' => 'customer_notify_message_for_time_change'], [
             'value' => json_encode([
@@ -1033,6 +1343,24 @@ class BusinessSettingsController extends Controller
                 'message' => $request['customer_notify_message_for_time_change'],
             ]),
         ]);
+        $notify_for_time_change= $this->business_setting->where('key', 'customer_notify_message_for_time_change')->first();
+        foreach ($request->lang as $index => $key) {
+            if ($key === 'default') {
+                continue;
+            }
+            $message = $request->notify_for_time_change_message[$index-1] ?? null;
+            if ( $message !== null) {
+                Translation::updateOrInsert(
+                    [
+                        'translationable_type' => 'App\Model\BusinessSetting',
+                        'translationable_id' => $notify_for_time_change->id,
+                        'locale' => $key,
+                        'key' => 'notify_for_time_change_message'
+                    ],
+                    ['value' => $message]
+                );
+            }
+        }
 
         $this->business_setting->updateOrInsert(['key' => 'returned_message'], [
             'value' => json_encode([
@@ -1040,6 +1368,24 @@ class BusinessSettingsController extends Controller
                 'message' => $request['returned_message'],
             ]),
         ]);
+        $return_order= $this->business_setting->where('key', 'returned_message')->first();
+        foreach ($request->lang as $index => $key) {
+            if ($key === 'default') {
+                continue;
+            }
+            $message = $request->return_order_message[$index-1] ?? null;
+            if ( $message !== null) {
+                Translation::updateOrInsert(
+                    [
+                        'translationable_type' => 'App\Model\BusinessSetting',
+                        'translationable_id' => $return_order->id,
+                        'locale' => $key,
+                        'key' => 'return_order_message'
+                    ],
+                    ['value' => $message]
+                );
+            }
+        }
 
         $this->business_setting->updateOrInsert(['key' => 'failed_message'], [
             'value' => json_encode([
@@ -1047,6 +1393,24 @@ class BusinessSettingsController extends Controller
                 'message' => $request['failed_message'],
             ]),
         ]);
+        $failed_order= $this->business_setting->where('key', 'failed_message')->first();
+        foreach ($request->lang as $index => $key) {
+            if ($key === 'default') {
+                continue;
+            }
+            $message = $request->failed_order_message[$index-1] ?? null;
+            if ( $message !== null) {
+                Translation::updateOrInsert(
+                    [
+                        'translationable_type' => 'App\Model\BusinessSetting',
+                        'translationable_id' => $failed_order->id,
+                        'locale' => $key,
+                        'key' => 'failed_order_message'
+                    ],
+                    ['value' => $message]
+                );
+            }
+        }
 
         $this->business_setting->updateOrInsert(['key' => 'canceled_message'], [
             'value' => json_encode([
@@ -1054,6 +1418,74 @@ class BusinessSettingsController extends Controller
                 'message' => $request['canceled_message'],
             ]),
         ]);
+        $canceled_order= $this->business_setting->where('key', 'canceled_message')->first();
+        foreach ($request->lang as $index => $key) {
+            if ($key === 'default') {
+                continue;
+            }
+            $message = $request->canceled_order_message[$index-1] ?? null;
+            if ( $message !== null) {
+                Translation::updateOrInsert(
+                    [
+                        'translationable_type' => 'App\Model\BusinessSetting',
+                        'translationable_id' => $canceled_order->id,
+                        'locale' => $key,
+                        'key' => 'canceled_order_message'
+                    ],
+                    ['value' => $message]
+                );
+            }
+        }
+
+        $this->business_setting->updateOrInsert(['key' => 'add_wallet_message'], [
+            'value' => json_encode([
+                'status' => $request['add_wallet_status'] == 1 ? 1 : 0,
+                'message' => $request['add_wallet_message'],
+            ]),
+        ]);
+        $add_wallet= $this->business_setting->where('key', 'add_wallet_message')->first();
+        foreach ($request->lang as $index => $key) {
+            if ($key === 'default') {
+                continue;
+            }
+            $message = $request->add_fund_wallet_message[$index-1] ?? null;
+            if ( $message !== null) {
+                Translation::updateOrInsert(
+                    [
+                        'translationable_type' => 'App\Model\BusinessSetting',
+                        'translationable_id' => $add_wallet->id,
+                        'locale' => $key,
+                        'key' => 'add_fund_wallet_message'
+                    ],
+                    ['value' => $message]
+                );
+            }
+        }
+
+        $this->business_setting->updateOrInsert(['key' => 'add_wallet_bonus_message'], [
+            'value' => json_encode([
+                'status' => $request['add_wallet_bonus_status'] == 1 ? 1 : 0,
+                'message' => $request['add_wallet_bonus_message'],
+            ]),
+        ]);
+        $add_wallet_bonus= $this->business_setting->where('key', 'add_wallet_bonus_message')->first();
+        foreach ($request->lang as $index => $key) {
+            if ($key === 'default') {
+                continue;
+            }
+            $message = $request->add_fund_wallet_bonus_message[$index-1] ?? null;
+            if ( $message !== null) {
+                Translation::updateOrInsert(
+                    [
+                        'translationable_type' => 'App\Model\BusinessSetting',
+                        'translationable_id' => $add_wallet_bonus->id,
+                        'locale' => $key,
+                        'key' => 'add_fund_wallet_bonus_message'
+                    ],
+                    ['value' => $message]
+                );
+            }
+        }
 
         Toastr::success(translate('Message updated!'));
         return back();
@@ -1396,7 +1828,17 @@ class BusinessSettingsController extends Controller
      */
     public function social_login(): Renderable
     {
-        return view('admin-views.business-settings.social-login');
+        $apple = BusinessSetting::where('key', 'apple_login')->first();
+        if (!$apple) {
+            DB::table('business_settings')->updateOrInsert(['key' => 'apple_login'], [
+                'value' => '{"login_medium":"apple","client_id":"","client_secret":"","team_id":"","key_id":"","service_file":"","redirect_url":"","status":""}',
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            $apple = BusinessSetting::where('key', 'apple_login')->first();
+        }
+        $appleLoginService = json_decode($apple->value, true);
+        return view('admin-views.business-settings.social-login', compact('appleLoginService'));
     }
 
     /**
@@ -1405,7 +1847,6 @@ class BusinessSettingsController extends Controller
      */
     public function social_login_status(Request $request): JsonResponse
     {
-
         if ($request->btn_name == 'google_social_login') {
             $this->business_setting->updateOrInsert(['key' => 'google_social_login'], [
                 'value' => $request->status,
@@ -1416,8 +1857,39 @@ class BusinessSettingsController extends Controller
                 'value' => $request->status,
             ]);
         }
-
         return response()->json(['status' => $request->status], 200);
+    }
+
+
+    /**
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    public function update_apple_login(Request $request): RedirectResponse
+    {
+        $apple_login = Helpers::get_business_settings('apple_login');
+
+        if ($request->hasFile('service_file')) {
+            $fileName = Helpers::upload('apple-login/', 'p8', $request->file('service_file'));
+        }
+
+        $data = [
+            'value' => json_encode([
+                'login_medium' => 'apple',
+                'client_id' => $request['client_id'],
+                'client_secret' => '',
+                'team_id' => $request['team_id'],
+                'key_id' => $request['key_id'],
+                'service_file' => $fileName ?? $apple_login['service_file'],
+                'redirect_url' => '',
+                'status' => $request->has('status') ? 1 : 0,
+            ]),
+        ];
+
+        $this->business_setting->updateOrInsert(['key' => 'apple_login'], $data);
+
+        Toastr::success(translate('settings updated!'));
+        return back();
     }
 
     /**
@@ -1504,5 +1976,86 @@ class BusinessSettingsController extends Controller
         return back();
     }
 
+    /**
+     * @return Application|Factory|View
+     */
+    public function order_index(): Factory|View|Application
+    {
+        return view('admin-views.business-settings.order-index');
+    }
 
+    /**
+     * @param Request $request
+     * @return RedirectResponse
+     */
+    public function order_update(Request $request): RedirectResponse
+    {
+        $this->business_setting->updateOrInsert(['key' => 'minimum_order_value'], [
+            'value' => $request['minimum_order_value'],
+        ]);
+
+        $this->business_setting->updateOrInsert(['key' => 'default_preparation_time'], [
+            'value' => $request['default_preparation_time'],
+        ]);
+        $this->business_setting->updateOrInsert(['key' => 'schedule_order_slot_duration'], [
+            'value' => $request['schedule_order_slot_duration']
+        ]);
+
+        Toastr::success(translate('Settings updated!'));
+        return back();
+    }
+
+    /**
+     * @return Application|Factory|View
+     */
+    public function customer_settings(): Factory|View|Application
+    {
+        $data = $this->business_setting->where('key', 'like', 'wallet_%')
+            ->orWhere('key', 'like', 'loyalty_%')
+            ->orWhere('key', 'like', 'ref_earning_%')
+            ->orWhere('key', 'like', 'ref_earning_%')
+            ->orWhere('key', 'like', 'add_fund_to_wallet')
+            ->get();
+        $data = array_column($data->toArray(), 'value', 'key');
+
+        return view('admin-views.business-settings.customer-settings', compact('data'));
+    }
+
+    public function customer_settings_update(Request $request)
+    {
+        $request->validate([
+            'loyalty_point_item_purchase_point' => 'nullable|numeric',
+            'loyalty_point_exchange_rate' => 'nullable|numeric',
+            'ref_earning_exchange_rate' => 'nullable|numeric',
+            'loyalty_point_minimum_point' => 'nullable|numeric',
+        ]);
+
+        $this->business_setting->updateOrInsert(['key' => 'wallet_status'], [
+            'value' => $request['customer_wallet'] ?? 0
+        ]);
+        $this->business_setting->updateOrInsert(['key' => 'loyalty_point_status'], [
+            'value' => $request['customer_loyalty_point'] ?? 0
+        ]);
+        $this->business_setting->updateOrInsert(['key' => 'ref_earning_status'], [
+            'value' => $request['ref_earning_status'] ?? 0
+        ]);
+        $this->business_setting->updateOrInsert(['key' => 'add_fund_to_wallet'], [
+            'value' => $request['add_fund_to_wallet'] ?? 0
+        ]);
+        $this->business_setting->updateOrInsert(['key' => 'loyalty_point_exchange_rate'], [
+            'value' => $request['loyalty_point_exchange_rate'] ?? 0
+        ]);
+        $this->business_setting->updateOrInsert(['key' => 'ref_earning_exchange_rate'], [
+            'value' => $request['ref_earning_exchange_rate'] ?? 0
+        ]);
+        $this->business_setting->updateOrInsert(['key' => 'loyalty_point_item_purchase_point'], [
+            'value' => $request['item_purchase_point'] ?? 0
+        ]);
+        $this->business_setting->updateOrInsert(['key' => 'loyalty_point_minimum_point'], [
+            'value' => $request['minimun_transfer_point'] ?? 0
+        ]);
+
+        Toastr::success(translate('customer_settings_updated_successfully'));
+        return back();
+    }
 }

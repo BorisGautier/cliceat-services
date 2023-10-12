@@ -23,7 +23,6 @@ class Product extends Model
         'popularity_count' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
-        'product_type' => 'string'
     ];
 
     public function getPriceAttribute($price): float
@@ -112,4 +111,14 @@ class Product extends Model
     {
         return $this->hasMany(ProductByBranch::class)->where(['branch_id' => session()->get('branch_id') ?? 1]);
     }
+
+    public function main_branch_product(): HasOne
+    {
+        return $this->hasOne(ProductByBranch::class)->where(['branch_id' => 1]);
+    }
+    public function sub_branch_product(): HasOne
+    {
+        return $this->hasOne(ProductByBranch::class)->where(['branch_id' => auth('branch')->id()]);
+    }
+
 }

@@ -19,7 +19,6 @@
         </div>
         <!-- End Page Header -->
 
-
         <div class="row gx-2 gx-lg-3">
             <div class="col-sm-12 col-lg-12 mb-3 mb-lg-2">
                 <form action="{{route('admin.banner.store')}}" method="post" enctype="multipart/form-data">

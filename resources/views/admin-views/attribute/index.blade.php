@@ -29,7 +29,7 @@
                                 {{translate('Attribute_Table')}}
                                 <span class="badge badge-soft-dark rounded-50 fz-12">{{ $attributes->total() }}</span>
                             </h5>
-                            
+
                             <div class="d-flex flex-wrap justify-content-md-end gap-3">
                                 <form action="#" method="GET">
                                     <div class="input-group">
@@ -71,10 +71,11 @@
                                         <td>
                                             <!-- Dropdown -->
                                             <div class="d-flex justify-content-center gap-2">
-                                                    <a class="btn btn-outline-info btn-sm edit square-btn"
-                                                    href="{{route('admin.attribute.edit',[$attribute['id']])}}"><i class="tio-edit"></i></a>
-                                                    <button type="button" class="btn btn-outline-danger btn-sm delete square-btn"
-                                                    onclick="form_alert('attribute-{{$attribute['id']}}','{{translate('Want to delete this attribute ?')}}')"><i class="tio-delete"></i></a>
+                                                <a class="btn btn-outline-info btn-sm edit square-btn"
+                                                   href="{{route('admin.attribute.edit',[$attribute['id']])}}"><i class="tio-edit"></i></a>
+                                                <button type="button" class="btn btn-outline-danger btn-sm delete square-btn"
+                                                        onclick="form_alert('attribute-{{$attribute['id']}}','{{translate('Want to delete this attribute ?')}}')"><i class="tio-delete"></i>
+                                                </button>
                                             </div>
                                             <form action="{{route('admin.attribute.delete',[$attribute['id']])}}"
                                                 method="post" id="attribute-{{$attribute['id']}}">

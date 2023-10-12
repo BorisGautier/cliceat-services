@@ -22,9 +22,29 @@
         <!-- Inline Page Menu -->
         @include('admin-views.business-settings.partials._3rdparty-inline-menu')
 
+        <div class="row g-3 mb-2">
+            @if($published_status == 1)
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-body d-flex justify-content-around">
+                            <h4 style="color: #8c1515; padding-top: 10px">
+                                <i class="tio-info-outined"></i>
+                                {{ translate('Your current sms settings are disabled, because you have enabled
+                                sms gateway addon, To visit your currently active sms gateway settings please follow
+                                the link.') }}
+                            </h4>
+                            <span>
+                               <a href="{{!empty($payment_url) ? $payment_url : ''}}" class="btn btn-outline-primary"><i class="tio-settings mr-1"></i>{{translate('settings')}}</a>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            @endif
+        </div>
+
         <div class="row">
             <div class="col-md-6">
-                <div class="card">
+                <div class="card sms-gatway-cards">
                     <div class="card-body">
                         <div class="d-flex flex-wrap justify-content-between align-items-center text-uppercase mb-1">
                             <h5 class="mb-0">{{translate('twilio_SMS')}}</h5>
@@ -91,7 +111,7 @@
                         </form>
                     </div>
                 </div>
-                <div class="card mt-3">
+                <div class="card sms-gatway-cards mt-3">
                     <div class="card-body">
                         <div class="d-flex flex-wrap justify-content-between align-items-center text-uppercase mb-1">
                             <h5 class="mb-0">{{translate('2factor_sms')}}</h5>
@@ -139,7 +159,7 @@
                         </form>
                     </div>
                 </div>
-                <div class="card mt-3">
+                <div class="card sms-gatway-cards mt-3">
                     <div class="card-body">
                         <div class="d-flex flex-wrap justify-content-between align-items-center text-uppercase mb-1">
                             <h5 class="mb-0">{{translate('signalwire_SMS')}}</h5>
@@ -205,7 +225,7 @@
             </div>
 
             <div class="col-md-6">
-                <div class="card">
+                <div class="card sms-gatway-cards">
                     <div class="card-body">
                         <div class="d-flex flex-wrap justify-content-between align-items-center text-uppercase mb-1">
                             <h5 class="mb-0">{{translate('nexmo_SMS')}}</h5>
@@ -265,7 +285,7 @@
                         </form>
                     </div>
                 </div>
-                <div class="card mt-3">
+                <div class="card sms-gatway-cards mt-3">
                     <div class="card-body">
                         <div class="d-flex flex-wrap justify-content-between align-items-center text-uppercase mb-1">
                             <h5 class="mb-0">{{translate('msg91_SMS')}}</h5>
@@ -321,5 +341,14 @@
 @endsection
 
 @push('script_2')
-
+    <script>
+        @if($published_status == 1)
+        $('.sms-gatway-cards').find('input').each(function(){
+            $(this).attr('disabled', true);
+        });
+        $('.sms-gatway-cards').find('button').each(function(){
+            $(this).attr('disabled', true);
+        });
+        @endif
+    </script>
 @endpush

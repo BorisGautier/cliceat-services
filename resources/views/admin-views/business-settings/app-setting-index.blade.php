@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title', translate('Settings'))
+@section('title', translate('App Settings'))
 
 @push('css_or_js')
 @endpush
@@ -10,7 +10,6 @@
         <!-- Page Header -->
         <div class="d-flex flex-wrap gap-2 align-items-center mb-4">
             <h2 class="h1 mb-0 d-flex align-items-center gap-2">
-{{--                <img width="20" class="avatar-img" src="{{asset('assets/admin/img/icons/product.png')}}" alt="">--}}
                 <img width="20" class="avatar-img" src="{{asset('assets/admin/img/icons/app.png')}}" alt="">
                 <span class="page-header-title">
                     {{translate('system_setup')}}
@@ -51,10 +50,9 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label class="text-dark"
-                                           for="android_min_version">{{ translate('Minimum_Version_for_Force_Update') }}
+                                    <label class="text-dark" for="android_min_version">{{ translate('Minimum_Version_for_Force_Update') }}
                                         <i class="tio-info text-danger" data-toggle="tooltip" data-placement="right"
-                                           title="{{ \App\CentralLogics\translate("If there is any update available in the admin panel and for that, the previous user app will not work, you can force the customer from here by providing the minimum version for force update. That means if a customer has an app below this version the customers must need to update the app first. If you don't need a force update just insert here zero (0) and ignore it.") }}"></i>
+                                           title="{{ translate("If there is any update available in the admin panel and for that, the previous user app will not work, you can force the customer from here by providing the minimum version for force update. That means if a customer has an app below this version the customers must need to update the app first. If you don't need a force update just insert here zero (0) and ignore it.") }}"></i>
                                     </label>
                                     <input type="number" min="0" step=".1" id="android_min_version"
                                            name="android_min_version"
@@ -101,10 +99,9 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <label class="text-dark"
-                                           for="ios_min_version">{{ translate('Minimum version for force update') }}
+                                    <label class="text-dark" for="ios_min_version">{{ translate('Minimum version for force update') }}
                                         <i class="tio-info text-danger" data-toggle="tooltip" data-placement="right"
-                                           title="{{ \App\CentralLogics\translate("If there is any update available in the admin panel and for that, the previous user app will not work, you can force the customer from here by providing the minimum version for force update. That means if a customer has an app below this version the customers must need to update the app first. If you don't need a force update just insert here zero (0) and ignore it.") }}"></i>
+                                           title="{{ translate("If there is any update available in the admin panel and for that, the previous user app will not work, you can force the customer from here by providing the minimum version for force update. That means if a customer has an app below this version the customers must need to update the app first. If you don't need a force update just insert here zero (0) and ignore it.") }}"></i>
                                     </label>
                                     <input type="number" min="0" step=".1" id="ios_min_version" name="ios_min_version"
                                            value="{{$config['min_version']??''}}" class="form-control"

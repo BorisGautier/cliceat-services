@@ -58,6 +58,9 @@ class DashboardController extends Controller
      */
     public function dashboard(): Renderable
     {
+        //update daily stock
+        Helpers::update_daily_product_stock();
+
         $top_sell = $this->order_detail->with(['product'])
             ->whereHas('order', function ($query) {
                 $query->where('order_status', 'delivered');

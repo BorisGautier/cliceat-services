@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title', translate('Settings'))
+@section('title', translate('Delivery_Fee_Setup'))
 
 @section('content')
     <div class="content container-fluid">
@@ -25,8 +25,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h4 class="mb-0">
-                            <i class="tio-settings"></i>
-                            {{translate('Delivery_Fee_Steup')}}
+                            {{translate('Delivery_Fee_Setup')}}
                         </h4>
                     </div>
                     <div class="card-body">

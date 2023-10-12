@@ -44,7 +44,7 @@ class CategoryController extends Controller
         }
 
 
-        $categories = $categories->latest()->paginate(Helpers::getPagination())->appends($query_param);
+        $categories = $categories->orderBY('priority', 'ASC')->paginate(Helpers::getPagination())->appends($query_param);
         return view('admin-views.category.index', compact('categories', 'search'));
     }
 
@@ -267,6 +267,16 @@ class CategoryController extends Controller
             Toastr::warning($category->parent_id == 0 ? translate('Remove subcategories first!') : translate('Sub Remove subcategories first!'));
         }
 
+        return back();
+    }
+
+    public function priority(Request $request)
+    {
+        $category = $this->category->find($request->id);
+        $category->priority = $request->priority;
+        $category->save();
+
+        Toastr::success(translate('priority updated!'));
         return back();
     }
 }

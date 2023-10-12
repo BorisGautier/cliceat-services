@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title', translate('Update branch'))
+@section('title', translate('Update Branch'))
 
 @push('css_or_js')
     <style>
@@ -37,20 +37,19 @@
                         <div class="card-header">
                             <h4 class="mb-0 d-flex gap-2 align-items-center">
                                 <i class="tio-user"></i>
-                                {{translate('branch_Information')}}
+                                {{translate('Branch_Information')}}
                             </h4>
                         </div>
                         <div class="card-body">
                             <div class="row">
                                 <div class="col-lg-6">
                                     <div class="form-group">
-                                        <label class="input-label"
-                                               for="exampleFormControlInput1">{{translate('name')}}</label>
+                                        <label class="input-label" for="exampleFormControlInput1">{{translate('name')}}<span class="text-danger ml-1">*</span></label>
                                         <input value="{{$branch['name']}}" type="text" name="name" class="form-control" maxlength="255"
                                                placeholder="{{translate('New branch')}}" required>
                                     </div>
                                     <div class="form-group">
-                                        <label class="input-label" for="">{{translate('address')}}</label>
+                                        <label class="input-label" for="">{{translate('address')}}<span class="text-danger ml-1">*</span></label>
                                         <input value="{{$branch['address']}}" type="text" name="address" class="form-control" placeholder="" required>
                                     </div>
                                 </div>
@@ -74,21 +73,21 @@
                                 </div>
                                 <div class="col-lg-4">
                                     <div class="form-group">
-                                        <label class="input-label">{{translate('phone')}}</label>
+                                        <label class="input-label">{{translate('phone')}}<span class="text-danger ml-1">*</span></label>
                                         <input value="{{$branch['phone']}}" type="tel" name="phone" class="form-control"
                                                placeholder="{{translate('Ex: +098538534')}}" required>
                                     </div>
                                 </div>
                                 <div class="col-lg-4">
                                     <div class="form-group">
-                                        <label class="input-label">{{translate('email')}}</label>
+                                        <label class="input-label">{{translate('email')}}<span class="text-danger ml-1">*</span></label>
                                         <input value="{{$branch['email']}}" type="email" name="email" class="form-control" maxlength="255"
                                                placeholder="{{translate('EX : example@example.com')}}" required>
                                     </div>
                                 </div>
                                 <div class="col-lg-4">
                                     <div class="form-group">
-                                        <label class="input-label">{{translate('password')}} <span class="text-danger">{{translate('*(input_if_you_want_to_reset)') }}</span></label>
+                                        <label class="input-label">{{translate('password')}} <span class="text-danger ml-1">{{translate('*(input_if_you_want_to_reset)') }}</span></label>
                                         <div class="input-group input-group-merge">
                                             <input type="password" name="password" class="js-toggle-password form-control form-control input-field" id="password"
                                                    placeholder="{{translate('Ex: 8+ Characters')}}"

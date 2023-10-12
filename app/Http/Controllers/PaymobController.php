@@ -2,26 +2,37 @@
 
 namespace App\Http\Controllers;
 
-use App\CentralLogics\Helpers;
-use App\Model\Currency;
-use App\User;
-use Brian2694\Toastr\Facades\Toastr;
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Http\RedirectResponse;
+
+
+use App\Models\PaymentRequest;
+use App\Models\User;
+use App\Traits\Processor;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Redirector;
 use Illuminate\Support\Facades\Redirect;
-use Illuminate\Support\Str;
-use function App\CentralLogics\translate;
+use Illuminate\Support\Facades\Validator;
 
 class PaymobController extends Controller
 {
-    /**
-     * @param $url
-     * @param $json
-     * @return mixed
-     */
-    protected function cURL($url, $json): mixed
+    use Processor;
+
+    private $config_values;
+
+    private PaymentRequest $payment;
+    private $user;
+
+    public function __construct(PaymentRequest $payment, User $user)
+    {
+        $config = $this->payment_config('paymob_accept', 'payment_config');
+        if (!is_null($config) && $config->mode == 'live') {
+            $this->config_values = json_decode($config->live_values);
+        } elseif (!is_null($config) && $config->mode == 'test') {
+            $this->config_values = json_decode($config->test_values);
+        }
+        $this->payment = $payment;
+        $this->user = $user;
+    }
+
+    protected function cURL($url, $json)
     {
         // Create curl resource
         $ch = curl_init($url);
@@ -44,11 +55,7 @@ class PaymobController extends Controller
         return json_decode($output);
     }
 
-    /**
-     * @param $url
-     * @return mixed
-     */
-    protected function GETcURL($url): mixed
+    protected function GETcURL($url)
     {
         // Create curl resource
         $ch = curl_init($url);
@@ -69,67 +76,67 @@ class PaymobController extends Controller
         return json_decode($output);
     }
 
-    /**
-     * @param Request $request
-     * @return RedirectResponse
-     */
-    public function credit(Request $request): RedirectResponse
+    public function credit(Request $request)
     {
-        $payment_data = [
-            'callback' => $request['callback'],
-            'customer_id' => $request['customer_id'],
-            'order_amount' => $request['order_amount']
-        ];
+        $validator = Validator::make($request->all(), [
+            'payment_id' => 'required|uuid'
+        ]);
 
-        session()->put('customer_id', $request['customer_id']);
-        session()->put('callback', $request['callback']);
-
-        $currency_code = Currency::where(['currency_code' => 'EGP'])->first();
-        if (!isset($currency_code)) {
-            Toastr::error(translate('paymob_supports_EGP_currency'));
-            return back()->withErrors(['error' => 'Failed']);
+        if ($validator->fails()) {
+            return response()->json($this->response_formatter(GATEWAYS_DEFAULT_400, null, $this->error_processor($validator)), 400);
         }
 
-        $config = Helpers::get_business_settings('paymob');
+        $data = $this->payment::where(['id' => $request['payment_id']])->where(['is_paid' => 0])->first();
+        if (!isset($data)) {
+            return response()->json($this->response_formatter(GATEWAYS_DEFAULT_204), 200);
+        }
+
+        session()->put('payment_id', $data->id);
+
+        if ($data['additional_data'] != null) {
+            $business = json_decode($data['additional_data']);
+            $business_name = $business->business_name ?? "my_business";
+        } else {
+            $business_name = "my_business";
+        }
+
+        $payer = json_decode($data['payer_information']);
+
         try {
             $token = $this->getToken();
-            $order = $this->createOrder($token, $payment_data);
-            $paymentToken = $this->getPaymentToken($order, $token, $payment_data);
+            $order = $this->createOrder($token, $data, $business_name);
+            $paymentToken = $this->getPaymentToken($order, $token, $data, $payer);
         } catch (\Exception $exception) {
-            Toastr::error(translate('country_permission_denied_or_misconfiguration'));
-            return back()->withErrors(['error' => 'Failed']);
+            return response()->json($this->response_formatter(GATEWAYS_DEFAULT_404), 200);
         }
-        return Redirect::away('https://accept.paymob.com/api/acceptance/iframes/' . $config['iframe_id'] . '?payment_token=' . $paymentToken);
+        return Redirect::away('https://accept.paymobsolutions.com/api/acceptance/iframes/' . $this->config_values->iframe_id . '?payment_token=' . $paymentToken);
     }
 
-    /**
-     * @return mixed
-     */
-    public function getToken(): mixed
+    public function getToken()
     {
-        $config = Helpers::get_business_settings('paymob');
         $response = $this->cURL(
-            'https://accept.paymobsolutions.com/api/auth/tokens',
-            ['api_key' => $config['api_key']]
+            'https://accept.paymob.com/api/auth/tokens',
+            ['api_key' => $this->config_values->api_key]
         );
 
         return $response->token;
     }
 
-    /**
-     * @param $token
-     * @param $payment_data
-     * @return mixed
-     */
-    public function createOrder($token, $payment_data): mixed
+    public function createOrder($token, $payment_data, $business_name)
     {
-        $amount = $payment_data['order_amount'];
+        $items[] = [
+            'name' => $business_name,
+            'amount_cents' => round($payment_data->payment_amount * 100),
+            'description' => 'payment ID :' . $payment_data->id,
+            'quantity' => 1
+        ];
 
         $data = [
             "auth_token" => $token,
             "delivery_needed" => "false",
-            "amount_cents" => round($amount, 2) * 100,
-            "currency" => "EGP",
+            "amount_cents" => round($payment_data->payment_amount * 100),
+            "currency" => $payment_data->currency_code,
+            "items" => $items,
 
         ];
         $response = $this->cURL(
@@ -140,40 +147,33 @@ class PaymobController extends Controller
         return $response;
     }
 
-    /**
-     * @param $order
-     * @param $token
-     * @param $payment_data
-     * @return mixed
-     */
-    public function getPaymentToken($order, $token, $payment_data): mixed
+    public function getPaymentToken($order, $token, $payment_data, $payer)
     {
-        $amount = $payment_data['order_amount'];
-        $user = User::find(session('customer_id'));
-        $config = Helpers::get_business_settings('paymob');
+        $value = $payment_data->payment_amount;
         $billingData = [
-            "apartment" => "NA",
-            "email" => $user['email'],
-            "floor" => "NA",
-            "first_name" => $user['f_name'],
-            "street" => "NA",
-            "building" => "NA",
-            "phone_number" => $user['phone'],
+            "apartment" => "N/A",
+            "email" => $payer->email,
+            "floor" => "N/A",
+            "first_name" => $payer->name,
+            "street" => "N/A",
+            "building" => "N/A",
+            "phone_number" => $payer->phone ?? "N/A",
             "shipping_method" => "PKG",
-            "postal_code" => "NA",
-            "city" => "NA",
-            "country" => "NA",
-            "last_name" => $user['l_name'],
-            "state" => "NA",
+            "postal_code" => "N/A",
+            "city" => "N/A",
+            "country" => "N/A",
+            "last_name" => $payer->name,
+            "state" => "N/A",
         ];
+
         $data = [
             "auth_token" => $token,
-            "amount_cents" => round($amount, 2) * 100,
+            "amount_cents" => round($value * 100),
             "expiration" => 3600,
             "order_id" => $order->id,
             "billing_data" => $billingData,
-            "currency" => "EGP",
-            "integration_id" => $config['integration_id']
+            "currency" => $payment_data->currency_code,
+            "integration_id" => $this->config_values->integration_id
         ];
 
         $response = $this->cURL(
@@ -184,18 +184,8 @@ class PaymobController extends Controller
         return $response->token;
     }
 
-    /**
-     * @param Request $request
-     * @return Application|RedirectResponse|Redirector
-     */
-    public function callback(Request $request): Redirector|RedirectResponse|Application
+    public function callback(Request $request)
     {
-        $callback = session('callback');
-        //token string generate
-        $transaction_reference = 'trx_' . Str::random(25);
-        $token_string = 'payment_method=paymob&&transaction_reference=' . $transaction_reference;
-
-        $config = Helpers::get_business_settings('paymob');
         $data = $request->all();
         ksort($data);
         $hmac = $data['hmac'];
@@ -227,14 +217,28 @@ class PaymobController extends Controller
                 $connectedString .= $element;
             }
         }
-        $secret = $config['hmac'];
+        $secret = $this->config_values->hmac;
         $hased = hash_hmac('sha512', $connectedString, $secret);
-        if ($hased == $hmac) {
-            if ($callback != null) {
-                return redirect($callback . '/success' . '?token=' . base64_encode($token_string));
-            }
-        }
 
-        return redirect($callback . '/fail' . '?token=' . base64_encode($token_string));
+        if ($hased == $hmac && $data['success'] === "true") {
+
+            $this->payment::where(['id' => session('payment_id')])->update([
+                'payment_method' => 'paymob_accept',
+                'is_paid' => 1,
+                'transaction_id' => session('payment_id'),
+            ]);
+
+            $payment_data = $this->payment::where(['id' => session('payment_id')])->first();
+
+            if (isset($payment_data) && function_exists($payment_data->success_hook)) {
+                call_user_func($payment_data->success_hook, $payment_data);
+            }
+            return $this->payment_response($payment_data,'success');
+        }
+        $payment_data = $this->payment::where(['id' => session('payment_id')])->first();
+        if (isset($payment_data) && function_exists($payment_data->failure_hook)) {
+            call_user_func($payment_data->failure_hook, $payment_data);
+        }
+        return $this->payment_response($payment_data,'fail');
     }
 }

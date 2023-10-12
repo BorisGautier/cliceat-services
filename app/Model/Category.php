@@ -13,7 +13,8 @@ class Category extends Model
     protected $casts = [
         'parent_id' => 'integer',
         'position' => 'integer',
-        'status' => 'integer'
+        'status' => 'integer',
+        'priority' => 'integer'
     ];
 
     public function translations(): MorphMany

@@ -21,7 +21,7 @@ class ProductLogic
 
         $key = explode(' ', $name);
         $paginator = Product::active()
-            ->with('branch_product')
+            ->with(['branch_product'])
             ->whereHas('branch_product.branch', function ($query) {
                 $query->where('status', 1);
             })

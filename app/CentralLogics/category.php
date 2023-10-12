@@ -17,19 +17,40 @@ class CategoryLogic
         return Category::where(['parent_id' => $parent_id])->get();
     }
 
-    public static function products($category_id, $product_type)
+    public static function products($category_id, $type, $search)
     {
+        $product_type = ($type == 'veg') ? 'veg' : ($type == 'non_veg' ? 'non_veg' : 'all');
+
         $products = Product::active()
+            ->with(['branch_product'])
+            ->whereHas('branch_product.branch', function ($query) {
+                $query->where('status', 1);
+            })
             ->branchProductAvailability()
-            ->when(isset($product_type) && ($product_type == 'veg' || $product_type == 'non_veg'), function ($query) use ($product_type) {
-                return $query->productType(($product_type == 'veg') ? 'veg' : 'non_veg');
+            ->when($product_type != 'all', function ($query) use ($product_type) {
+                return $query->where('product_type', $product_type);
+            })
+            ->when(isset($search), function ($q) use ($search) {
+                $key = explode(' ', $search);
+                foreach ($key as $value) {
+                    $q->where('name', 'like', "%{$value}%");
+                }
+                $q->orWhereHas('tags',function($query) use ($key){
+                    $query->where(function($q) use ($key){
+                        foreach ($key as $value) {
+                            $q->where('tag', 'like', "%{$value}%");
+                        };
+                    });
+                });
             })
             ->get();
+
+
         $product_ids = [];
         foreach ($products as $product) {
             foreach (json_decode($product['category_ids'], true) as $category) {
                 if ($category['id'] == $category_id) {
-                    array_push($product_ids, $product['id']);
+                    $product_ids[] = $product['id'];
                 }
             }
         }

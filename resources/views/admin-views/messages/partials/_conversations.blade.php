@@ -23,6 +23,7 @@
                             <span class="time_date"> {{\Carbon\Carbon::parse($con->created_at)->format('h:m a | M d')}}</span>
                         @endif
                         <?php try {?>
+
                         @if($con->image != null && $con->image != "null" && count(json_decode($con->image, true)) > 0)
                                 <div class="row gx-2 mt-2">
                                 @php($image_array = json_decode($con->image, true))

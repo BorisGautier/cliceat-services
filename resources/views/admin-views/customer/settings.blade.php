@@ -196,23 +196,6 @@
             $('.referrer-earning').hide();
             @endif
 
-            // INITIALIZATION OF DATATABLES
-            // =======================================================
-            var datatable = $.HSCore.components.HSDatatables.init($('#columnSearchDatatable'));
-            $('#column1_search').on('keyup', function() {
-                datatable
-                    .columns(1)
-                    .search(this.value)
-                    .draw();
-            });
-
-
-            $('#column3_search').on('change', function() {
-                datatable
-                    .columns(2)
-                    .search(this.value)
-                    .draw();
-            });
         });
     </script>
 
@@ -227,57 +210,5 @@
                 $('.' + $('#' + id).data('section')).hide();
             }
         }
-
-
-        {{--$('#add_fund').on('submit', function(e) {--}}
-
-        {{--    e.preventDefault();--}}
-        {{--    var formData = new FormData(this);--}}
-
-        {{--    Swal.fire({--}}
-        {{--        title: '{{ translate('are_you_sure') }}',--}}
-        {{--        text: '{{ translate('you_want_to_add_fund') }}' + $('#amount').val() +--}}
-        {{--            ' {{ \App\CentralLogics\Helpers::currency_code() . ' ' . translate('to') }} ' + $(--}}
-        {{--                '#customer option:selected').text() + '{{ translate('to_wallet') }}',--}}
-        {{--        type: 'info',--}}
-        {{--        showCancelButton: true,--}}
-        {{--        cancelButtonColor: 'default',--}}
-        {{--        confirmButtonColor: 'primary',--}}
-        {{--        cancelButtonText: '{{ translate('no') }}',--}}
-        {{--        confirmButtonText: '{{ translate('send') }}',--}}
-        {{--        reverseButtons: true--}}
-        {{--    }).then((result) => {--}}
-        {{--        if (result.value) {--}}
-        {{--            $.ajaxSetup({--}}
-        {{--                headers: {--}}
-        {{--                    'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')--}}
-        {{--                }--}}
-        {{--            });--}}
-        {{--            $.post({--}}
-        {{--                url: '{{ route('admin.customer.wallet.add-fund') }}',--}}
-        {{--                data: formData,--}}
-        {{--                cache: false,--}}
-        {{--                contentType: false,--}}
-        {{--                processData: false,--}}
-        {{--                success: function(data) {--}}
-        {{--                    if (data.errors) {--}}
-        {{--                        for (var i = 0; i < data.errors.length; i++) {--}}
-        {{--                            toastr.error(data.errors[i].message, {--}}
-        {{--                                CloseButton: true,--}}
-        {{--                                ProgressBar: true--}}
-        {{--                            });--}}
-        {{--                        }--}}
-        {{--                    } else {--}}
-        {{--                        toastr.success(--}}
-        {{--                            '{{ translate('fund_added_successfully') }}', {--}}
-        {{--                                CloseButton: true,--}}
-        {{--                                ProgressBar: true--}}
-        {{--                            });--}}
-        {{--                    }--}}
-        {{--                }--}}
-        {{--            });--}}
-        {{--        }--}}
-        {{--    })--}}
-        {{--})--}}
     </script>
 @endpush

@@ -32,7 +32,11 @@
         "razorpay/razorpay": "^2.5",
         "stripe/stripe-php": "^7.61",
         "twilio/sdk": "^6.28",
-        "unicodeveloper/laravel-paystack": "^1.0"
+        "unicodeveloper/laravel-paystack": "^1.0",
+        "iyzico/iyzipay-php": "^2.0",
+        "xendit/xendit-php": "^2.19",
+        "nwidart/laravel-modules": "^9.0",
+        "simplesoftwareio/simple-qrcode": "~4"
     },
     "require-dev": {
         "barryvdh/laravel-debugbar": "^3.5",

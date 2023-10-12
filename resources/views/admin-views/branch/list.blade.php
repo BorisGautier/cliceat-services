@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title', translate('Add new branch'))
+@section('title', translate('Branch List'))
 
 @push('css_or_js')
 
@@ -47,15 +47,14 @@
 
             <div class="card-body px-0 pb-0">
                 <div class="table-responsive datatable-custom">
-                    <table
-                        class="table table-borderless table-thead-bordered table-nowrap table-align-middle card-table">
+                    <table class="table table-borderless table-thead-bordered table-nowrap table-align-middle card-table">
                         <thead class="thead-light">
                         <tr>
                             <th>{{translate('SL')}}</th>
-                            <th>{{translate('branch_Name')}}</th>
-                            <th>{{translate('branch_Type')}}</th>
+                            <th>{{translate('Branch_Name')}}</th>
+                            <th>{{translate('Branch_Type')}}</th>
                             <th>{{translate('Contact_Info')}}</th>
-                            <th>{{translate('promotion_campaign')}}</th>
+                            <th>{{translate('Promotion_campaign')}}</th>
                             <th>{{translate('status')}}</th>
                             <th class="text-center">{{translate('action')}}</th>
                         </tr>
@@ -80,7 +79,6 @@
                                         </div>
                                     </div>
                                 </td>
-                                <!-- <td>{{$branch['email']}}</td> -->
                                 <td>{{$branch->id == 1 ? translate('main_branch') : translate('sub_branch')}}</td>
                                 <td>
                                     <div>

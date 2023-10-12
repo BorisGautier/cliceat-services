@@ -4,94 +4,122 @@ namespace App\Http\Controllers;
 
 use App\CentralLogics\Helpers;
 use App\Model\BusinessSetting;
+use App\Models\PaymentRequest;
+use App\Traits\Processor;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Routing\Redirector;
-use Illuminate\Support\Str;
-use PHPUnit\Exception;
-use Stripe\Charge;
-use Stripe\Exception\ApiErrorException;
 use Stripe\Stripe;
+use Illuminate\Support\Facades\Validator;
+use Stripe\Checkout\Session;
 
 class StripePaymentController extends Controller
 {
-    /**
-     * @param Request $request
-     * @return JsonResponse
-     * @throws ApiErrorException
-     */
-    public function payment_process_3d(Request $request): JsonResponse
-    {
-        $tran = Str::random(6) . '-' . rand(1, 1000);
-        $order_amount = $request['order_amount'];
-        $callback = $request['callback'];
-        $config = Helpers::get_business_settings('stripe');
-        Stripe::setApiKey($config['api_key']);
-        header('Content-Type: application/json');
-        $currency_code = Helpers::get_business_settings('currency') ?? 'usd';
+    use Processor;
 
-        $currencies_not_supported_cents = ['BIF', 'CLP', 'DJF', 'GNF', 'JPY', 'KMF', 'KRW', 'MGA', 'PYG', 'RWF', 'UGX', 'VND', 'VUV', 'XAF', 'XOF', 'XPF'];
-        $checkout_session = \Stripe\Checkout\Session::create([
+    private $config_values;
+    private PaymentRequest $payment;
+
+    public function __construct(PaymentRequest $payment)
+    {
+        $config = $this->payment_config('stripe', 'payment_config');
+        if (!is_null($config) && $config->mode == 'live') {
+            $this->config_values = json_decode($config->live_values);
+        } elseif (!is_null($config) && $config->mode == 'test') {
+            $this->config_values = json_decode($config->test_values);
+        }
+        $this->payment = $payment;
+    }
+
+    public function index(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'payment_id' => 'required|uuid'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($this->response_formatter(GATEWAYS_DEFAULT_400, null, $this->error_processor($validator)), 400);
+        }
+
+        $data = $this->payment::where(['id' => $request['payment_id']])->where(['is_paid' => 0])->first();
+        if (!isset($data)) {
+            return response()->json($this->response_formatter(GATEWAYS_DEFAULT_204), 200);
+        }
+        $config = $this->config_values;
+
+        return view('payment-gateway.stripe', compact('data', 'config'));
+    }
+
+    public function payment_process_3d(Request $request)
+    {
+        $data = $this->payment::where(['id' => $request['payment_id']])->where(['is_paid' => 0])->first();
+        if (!isset($data)) {
+            return response()->json($this->response_formatter(GATEWAYS_DEFAULT_204), 200);
+        }
+        $payment_amount = $data['payment_amount'];
+
+        Stripe::setApiKey($this->config_values->api_key);
+        header('Content-Type: application/json');
+        $currency_code = $data->currency_code;
+
+        if ($data['additional_data'] != null) {
+            $business = json_decode($data['additional_data']);
+            $business_name = $business->business_name ?? "my_business";
+            $business_logo = $business->business_logo ??  url('/');
+        } else {
+            $business_name = "my_business";
+            $business_logo = url('/');
+        }
+
+        $checkout_session = Session::create([
             'payment_method_types' => ['card'],
             'line_items' => [[
                 'price_data' => [
-                    'currency' => $currency_code,
-                    'unit_amount' => in_array($currency_code, $currencies_not_supported_cents) ? (int)$order_amount : ($order_amount * 100),
+                    'currency' => $currency_code ?? 'usd',
+                    'unit_amount' => round($payment_amount, 2) * 100,
                     'product_data' => [
-                        'name' => BusinessSetting::where(['key' => 'restaurant_name'])->first()->value,
-                        'images' => [asset('storage/restaurant') . '/' . BusinessSetting::where(['key' => 'logo'])->first()->value],
+                        'name' => $business_name,
+                        'images' => [$business_logo],
                     ],
                 ],
                 'quantity' => 1,
             ]],
             'mode' => 'payment',
-            'success_url' => route('pay-stripe.success', ['callback' => $callback, 'transaction_reference' => $tran]),
+            'success_url' => url('/') . '/payment/stripe/success?session_id={CHECKOUT_SESSION_ID}&payment_id=' . $data->id,
             'cancel_url' => url()->previous(),
         ]);
 
         return response()->json(['id' => $checkout_session->id]);
     }
 
-    /**
-     * @param Request $request
-     * @return Redirector|RedirectResponse|Application
-     */
-    public function success(Request $request): Redirector|RedirectResponse|Application
+    public function success(Request $request)
     {
-        $callback = $request['callback'];
+        Stripe::setApiKey($this->config_values->api_key);
+        $session = Session::retrieve($request->get('session_id'));
 
-        //token string generate
-        $transaction_reference = $request['transaction_reference'];
-        $token_string = 'payment_method=stripe&&transaction_reference=' . $transaction_reference;
+        if ($session->payment_status == 'paid' && $session->status == 'complete') {
 
-        //success
-        if ($callback != null) {
-            return redirect($callback . '/success' . '?token=' . base64_encode($token_string));
-        } else {
-            return \redirect()->route('payment-success', ['token' => base64_encode($token_string)]);
+            $this->payment::where(['id' => $request['payment_id']])->update([
+                'payment_method' => 'stripe',
+                'is_paid' => 1,
+                'transaction_id' => $session->payment_intent,
+            ]);
+
+            $data = $this->payment::where(['id' => $request['payment_id']])->first();
+
+            if (isset($data) && function_exists($data->success_hook)) {
+                call_user_func($data->success_hook, $data);
+            }
+
+            return $this->payment_response($data,'success');
         }
-    }
-
-    /**
-     * @param Request $request
-     * @return Redirector|RedirectResponse|Application
-     */
-    public function fail(Request $request): Redirector|RedirectResponse|Application
-    {
-        $callback = $request['callback'];
-
-        //token string generate
-        $transaction_reference = $request['transaction_reference'];
-        $token_string = 'payment_method=stripe&&transaction_reference=' . $transaction_reference;
-
-        //fail
-        if ($callback != null) {
-            return redirect($callback . '/fail' . '?token=' . base64_encode($token_string));
-        } else {
-            return \redirect()->route('payment-fail', ['token' => base64_encode($token_string)]);
+        $payment_data = $this->payment::where(['id' => $request['payment_id']])->first();
+        if (isset($payment_data) && function_exists($payment_data->failure_hook)) {
+            call_user_func($payment_data->failure_hook, $payment_data);
         }
+        return $this->payment_response($payment_data,'fail');
     }
 }
+
+
 

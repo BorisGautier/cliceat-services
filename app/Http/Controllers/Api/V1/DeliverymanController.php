@@ -10,6 +10,7 @@ use App\Model\BusinessSetting;
 use App\Model\DeliveryHistory;
 use App\Model\DeliveryMan;
 use App\Model\Order;
+use App\Models\OrderPartialPayment;
 use App\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -79,7 +80,7 @@ class DeliverymanController extends Controller
         }
 
         $orders = $this->order
-            ->with(['customer'])
+            ->with(['customer', 'order_partial_payments', 'delivery_address'])
             ->whereIn('order_status', ['pending', 'processing', 'out_for_delivery', 'confirmed', 'done', 'cooking'])
             ->where(['delivery_man_id' => $dm['id']])
             ->get();
@@ -184,7 +185,11 @@ class DeliverymanController extends Controller
         ]);
 
         $order = $this->order->find($request['order_id']);
-        $fcm_token = $order->customer->cm_firebase_token;
+        $fcm_token = '';
+        if ($order->is_guest == 0){
+            $fcm_token = $order->customer->cm_firebase_token;
+
+        }
 
         if ($request['status'] == 'out_for_delivery') {
             $value = Helpers::order_status_update_message('ord_start');
@@ -192,19 +197,34 @@ class DeliverymanController extends Controller
         } elseif ($request['status'] == 'delivered') {
             $value = Helpers::order_status_update_message('delivery_boy_delivered');
 
-            if ($order->user_id) CustomerLogic::create_loyalty_point_transaction($order->user_id, $order->id, $order->order_amount, 'order_place');
+            if ($order->is_guest == 0){
+                if ($order->user_id) CustomerLogic::create_loyalty_point_transaction($order->user_id, $order->id, $order->order_amount, 'order_place');
 
-            if ($order->transaction == null) {
-                $ol = OrderLogic::create_transaction($order, 'admin');
+                if ($order->transaction == null) {
+                    $ol = OrderLogic::create_transaction($order, 'admin');
+                }
+
+                $user = $this->user->find($order->user_id);
+                $is_first_order = $this->order->where(['user_id' => $user->id, 'order_status' => 'delivered'])->count('id');
+                $referred_by_user = $this->user->find($user->refer_by);
+
+                if ($is_first_order < 2 && isset($user->refer_by) && isset($referred_by_user)) {
+                    if ($this->business_setting->where('key', 'ref_earning_status')->first()->value == 1) {
+                        CustomerLogic::referral_earning_wallet_transaction($order->user_id, 'referral_order_place', $referred_by_user->id);
+                    }
+                }
             }
 
-            $user = $this->user->find($order->user_id);
-            $is_first_order = $this->order->where('user_id', $user->id)->count('id');
-            $referred_by_user = $this->user->find($user->refer_by);
-
-            if ($is_first_order < 2 && isset($user->refer_by) && isset($referred_by_user)) {
-                if ($this->business_setting->where('key', 'ref_earning_status')->first()->value == 1) {
-                    CustomerLogic::referral_earning_wallet_transaction($order->user_id, 'referral_order_place', $referred_by_user->id);
+            //partials payment transaction
+            if ($order['payment_method'] == 'cash_on_delivery'){
+                $partial_data = OrderPartialPayment::where(['order_id' => $order->id])->first();
+                if ($partial_data){
+                    $partial = new OrderPartialPayment;
+                    $partial->order_id = $order['id'];
+                    $partial->paid_with = 'cash_on_delivery';
+                    $partial->paid_amount = $partial_data->due_amount;
+                    $partial->due_amount = 0;
+                    $partial->save();
                 }
             }
         }
@@ -367,7 +387,7 @@ class DeliverymanController extends Controller
         }
 
         $dm = $this->delivery_man->where(['auth_token' => $request['token']])->first();
-        if (isset($dm) == false) {
+        if (!isset($dm)) {
             return response()->json([
                 'errors' => [
                     ['code' => 'delivery-man', 'message' => translate('Invalid token!')]
@@ -375,7 +395,10 @@ class DeliverymanController extends Controller
             ], 401);
         }
 
-        $this->delivery_man->where(['id' => $dm['id']])->update(['fcm_token' => $request['fcm_token']]);
+        $this->delivery_man->where(['id' => $dm['id']])->update([
+            'fcm_token' => $request['fcm_token'],
+            'language_code' => $request->header('X-localization') ?? $dm->language_code
+        ]);
 
         return response()->json(['message' => translate('successfully updated!')], 200);
     }
@@ -398,7 +421,7 @@ class DeliverymanController extends Controller
         }
 
         $order = $this->order
-            ->with(['customer'])
+            ->with(['customer', 'order_partial_payments'])
             ->whereIn('order_status', ['pending', 'processing', 'out_for_delivery', 'confirmed', 'done', 'cooking'])
             ->where(['delivery_man_id' => $dm['id'], 'id' => $request->id])
             ->first();

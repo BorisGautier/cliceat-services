@@ -19,10 +19,7 @@ class ProductController extends Controller
         private Product     $product,
         private Translation $translation,
         private Review      $review
-    )
-    {
-    }
-
+    ){}
 
     /**
      * @param Request $request
@@ -30,6 +27,9 @@ class ProductController extends Controller
      */
     public function get_latest_products(Request $request): JsonResponse
     {
+        //update daily stock
+        Helpers::update_daily_product_stock();
+
         $products = ProductLogic::get_latest_products($request['limit'], $request['offset'], $request['product_type'], $request['name'], $request['category_ids']);
         $products['products'] = Helpers::product_data_formatting($products['products'], true);
         return response()->json($products, 200);

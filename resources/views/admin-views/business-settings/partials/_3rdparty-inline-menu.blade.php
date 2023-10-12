@@ -6,7 +6,7 @@
             <li class="{{Request::is('admin/business-settings/web-app/third-party/sms-module')? 'active': ''}}"><a href="{{route('admin.business-settings.web-app.sms-module')}}">{{translate('SMS_Config')}}</a></li>
             <li class="{{Request::is('admin/business-settings/web-app/third-party/map-api-settings')? 'active': ''}}"><a href="{{route('admin.business-settings.web-app.third-party.map_api_settings')}}">{{translate('Google_Map_APIs')}}</a></li>
             <li class="{{Request::is('admin/business-settings/web-app/third-party/recaptcha')? 'active': ''}}"><a href="{{route('admin.business-settings.web-app.third-party.recaptcha_index')}}">{{translate('Recaptcha')}}</a></li>
-            <li class="{{Request::is('admin/business-settings/web-app/third-party/fcm-index')? 'active': ''}}"><a href="{{route('admin.business-settings.web-app.third-party.fcm-index')}}">{{translate('Push_Notification')}}</a></li>
+{{--            <li class="{{Request::is('admin/business-settings/web-app/third-party/fcm-index')? 'active': ''}}"><a href="{{route('admin.business-settings.web-app.third-party.fcm-index')}}">{{translate('Push_Notification')}}</a></li>--}}
             <li class="{{Request::is('admin/business-settings/web-app/third-party/social-login')? 'active': ''}}"><a href="{{route('admin.business-settings.web-app.third-party.social-login')}}">{{translate('Social_Login')}}</a></li>
             <li class="{{Request::is('admin/business-settings/web-app/third-party/chat')? 'active': ''}}"><a href="{{route('admin.business-settings.web-app.third-party.chat')}}">{{translate('chat')}}</a></li>
         </ul>

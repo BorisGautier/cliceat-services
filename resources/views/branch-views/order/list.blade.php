@@ -300,22 +300,6 @@
 
                                 </td>
                                 <td>
-                                    {{--<div class="dropdown">--}}
-                                        {{--<button class="btn btn-outline-secondary dropdown-toggle" type="button"--}}
-                                            {{--id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true"--}}
-                                                {{--aria-expanded="false">--}}
-                                                {{--<i class="tio-settings"></i>--}}
-                                                {{--</button>--}}
-                                                {{--<div class="dropdown-menu" aria-labelledby="dropdownMenuButton">--}}
-                                                    {{--<a class="dropdown-item"--}}
-                                                    {{--href="{{route('branch.orders.details',['id'=>$order['id']])}}"><i--}}
-                                                    {{--class="tio-visible"></i> {{translate('view')}}</a>--}}
-                                                    {{--<a class="dropdown-item" target="_blank"--}}
-                                                    {{--href="{{route('branch.orders.generate-invoice',[$order['id']])}}"><i--}}
-                                                    {{--class="tio-download"></i> {{translate('invoice')}}</a>--}}
-                                                {{--</div>--}}
-                                            {{--</div>--}}
-
                                     <div class="d-flex justify-content-center gap-2">
                                         <a class="btn btn-sm btn-outline-info square-btn"
                                         href="{{route('branch.orders.details',['id'=>$order['id']])}}"><i
@@ -418,7 +402,7 @@
                 },
             });
         }
-                    
+
         function printDiv(divName) {
 
             if($('html').attr('dir') === 'rtl') {

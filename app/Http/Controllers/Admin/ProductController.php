@@ -98,6 +98,9 @@ class ProductController extends Controller
      */
     public function list(Request $request): Renderable
     {
+        //update daily stock
+        Helpers::update_daily_product_stock();
+
         $query_param = [];
         $search = $request['search'];
         if ($request->has('search')) {
@@ -113,7 +116,7 @@ class ProductController extends Controller
             $query = $this->product;
         }
 
-        $products = $query->orderBy('id', 'DESC')->paginate(Helpers::getPagination())->appends($query_param);
+        $products = $query->with('main_branch_product')->orderBy('id', 'DESC')->paginate(Helpers::getPagination())->appends($query_param);
         return view('admin-views.product.list', compact('products', 'search'));
     }
 
@@ -162,6 +165,8 @@ class ProductController extends Controller
             'product_type' => 'required|in:veg,non_veg',
             'discount_type' => 'required',
             'tax_type' => 'required',
+            'stock_type' => 'required|in:unlimited,daily,fixed',
+            'product_stock' => 'required_if:stock_type,daily,fixed',
         ], [
             'name.required' => translate('Product name is required!'),
             'name.unique' => translate('Product name has been taken.'),
@@ -173,6 +178,7 @@ class ProductController extends Controller
         } else {
             $dis = $request['discount'];
         }
+
 
         if ($request['price'] <= $dis) {
             $validator->getMessageBag()->add('unit_price', translate('Discount can not be more or equal to the price!'));
@@ -288,8 +294,8 @@ class ProductController extends Controller
         $product->attributes = $request->has('attribute_id') ? json_encode($request->attribute_id) : json_encode([]);
         $product->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
         $product->status = $request->status == 'on' ? 1 : 0;
-
         $product->save();
+
         $product->tags()->sync($tag_ids);
 
         $main_branch_product = $this->product_by_branch;
@@ -300,6 +306,8 @@ class ProductController extends Controller
         $main_branch_product->branch_id = 1;
         $main_branch_product->is_available = 1;
         $main_branch_product->variations = $variations;
+        $main_branch_product->stock_type = $request->stock_type;
+        $main_branch_product->stock = $request->product_stock ?? 0;
         $main_branch_product->save();
 
         $data = [];
@@ -334,7 +342,7 @@ class ProductController extends Controller
      */
     public function edit($id): Renderable
     {
-        $product = $this->product->withoutGlobalScopes()->with('translations')->find($id);
+        $product = $this->product->withoutGlobalScopes()->with(['translations', 'main_branch_product'])->find($id);
         $product_category = json_decode($product->category_ids);
         $categories = $this->category->where(['parent_id' => 0])->get();
 
@@ -386,6 +394,8 @@ class ProductController extends Controller
             'item_type' => 'required',
             'discount_type' => 'required',
             'tax_type' => 'required',
+            'stock_type' => 'required|in:unlimited,daily,fixed',
+            'product_stock' => 'required_if:stock_type,daily,fixed',
         ], [
             'name.required' => translate('Product name is required!'),
             'category_id.required' => translate('category  is required!'),
@@ -544,21 +554,11 @@ class ProductController extends Controller
         $product->attributes = $request->has('attribute_id') ? json_encode($request->attribute_id) : json_encode([]);
         $product->add_ons = $request->has('addon_ids') ? json_encode($request->addon_ids) : json_encode([]);
         $product->status = $request->status == 'on' ? 1 : 0;
-
         $product->save();
+
         $product->tags()->sync($tag_ids);
 
-        $data = [
-            'product_id' => $product->id,
-            'price' => $request->price,
-            'discount_type' => $request->discount_type,
-            'discount' => $request->discount,
-            'branch_id' => 1,
-            'is_available' => 1,
-            'variations' => $variations,
-        ];
-
-        $this->product_by_branch->updateOrCreate([
+        $updated_product = $this->product_by_branch->updateOrCreate([
             'product_id' => $product->id,
             'branch_id' => 1,
         ], [
@@ -569,8 +569,15 @@ class ProductController extends Controller
                 'branch_id' => 1,
                 'is_available' => 1,
                 'variations' => $variations,
+                'stock_type' => $request->stock_type,
+                'stock' =>  $request->product_stock ?? 0,
             ]
         );
+
+        if ($updated_product->wasChanged('stock_type') || $updated_product->wasChanged('stock')) {
+            $updated_product->sold_quantity = 0;
+            $updated_product->save();
+        }
 
         foreach ($request->lang as $index => $key) {
             if ($request->name[$index] && $key != 'en') {

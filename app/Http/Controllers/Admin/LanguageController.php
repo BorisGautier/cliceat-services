@@ -37,6 +37,13 @@ class LanguageController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $request->validate([
+            'name' => 'required',
+            'code' => 'required',
+        ],[
+            'code' => translate('Country code select is required'),
+        ]);
+
         $language = Helpers::get_business_settings('language');
         if (!isset($language)) {
             $this->business_setting->updateOrInsert(['key' => 'language'], [

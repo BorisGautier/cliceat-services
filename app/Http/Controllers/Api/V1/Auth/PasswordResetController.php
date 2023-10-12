@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1\Auth;
 use App\CentralLogics\Helpers;
 use App\CentralLogics\SMS_module;
 use App\Http\Controllers\Controller;
+use App\Traits\SmsGateway;
 use App\User;
 use Carbon\CarbonInterval;
 use Illuminate\Http\JsonResponse;
@@ -70,14 +71,26 @@ class PasswordResetController extends Controller
             ]);
 
             if ($send_by_phone) {
-                $response = SMS_module::send($customer['phone'], $token);
+                $published_status = 0;
+                $payment_published_status = config('get_payment_publish_status');
+                if (isset($payment_published_status[0]['is_published'])) {
+                    $published_status = $payment_published_status[0]['is_published'];
+                }
+                if($published_status == 1){
+                    $response = SmsGateway::send($customer['phone'], $token);
+                }else{
+                    $response = SMS_module::send($customer['phone'], $token);
+                }
+
                 return response()->json(['message' => $response], 200);
             }
 
             try {
                 $emailServices = Helpers::get_business_settings('mail_config');
-                if (isset($emailServices['status']) && $emailServices['status'] == 1) {
-                    Mail::to($customer['email'])->send(new \App\Mail\PasswordResetMail($token));
+                $mail_status = Helpers::get_business_settings('forget_password_mail_status_user');
+
+                if(isset($emailServices['status']) && $emailServices['status'] == 1 && $mail_status == 1){
+                    Mail::to($customer['email'])->send(new \App\Mail\PasswordResetMail($token, $customer['f_name']. ' '. $customer['l_name'], $customer->language_code ));
                 }
 
             } catch (\Exception $exception) {

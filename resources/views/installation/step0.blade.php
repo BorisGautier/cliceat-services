@@ -3,13 +3,13 @@
 @section('content')
     <!-- Title -->
     <div class="text-center text-white mb-4">
-        <h2>ClicEat Software Installation</h2>
+        <h2>eFood Software Installation</h2>
         <h6 class="fw-normal">Please proceed step by step with proper data according to instructions</h6>
     </div>
 
     <!-- Progress -->
     <div class="pb-2 px-2 px-sm-5 mx-xl-4">
-        <div class="progress cursor-pointer" role="progressbar" aria-label="ClicEat Software Installation"
+        <div class="progress cursor-pointer" role="progressbar" aria-label="eFood Software Installation"
              aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" data-bs-toggle="tooltip"
              data-bs-placement="top" data-bs-custom-class="custom-progress-tooltip" data-bs-title="Intro Step!"
              data-bs-delay='{"hide":1000}'>

@@ -146,8 +146,19 @@
                 <dd class="col-4">
                     -{{ \App\CentralLogics\Helpers::set_symbol($order['extra_discount']) }}</dd>
 
+                <dt class="col-8">{{translate('Delivery Fee:')}}</dt>
+                <dd class="col-4">
+                    @if($order['order_type']=='take_away')
+                        @php($del_c=0)
+                    @else
+                        @php($del_c=$order['delivery_charge'])
+                    @endif
+                    {{ \App\CentralLogics\Helpers::set_symbol($del_c) }}
+                    <hr>
+                </dd>
+
                 <dt class="col-6" style="font-size: 20px">{{translate('Total')}}:</dt>
-                <dd class="col-6" style="font-size: 20px">{{ \App\CentralLogics\Helpers::set_symbol($subtotal-$order['coupon_discount_amount']-$order['extra_discount']) }}</dd>
+                <dd class="col-6" style="font-size: 20px">{{ \App\CentralLogics\Helpers::set_symbol($subtotal-$order['coupon_discount_amount']-$order['extra_discount']+$del_c) }}</dd>
             </dl>
         </div>
     </div>

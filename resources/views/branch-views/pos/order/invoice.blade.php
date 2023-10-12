@@ -156,6 +156,36 @@
                 </dd>
                 <dt class="col-6" style="font-size: 20px">{{translate('Total')}}:</dt>
                 <dd class="col-6" style="font-size: 20px">{{ \App\CentralLogics\Helpers::set_symbol($order->order_amount) }}</dd>
+
+                <!-- partial payment-->
+                @if ($order->order_partial_payments->isNotEmpty())
+                    @foreach($order->order_partial_payments as $partial)
+                        <dt class="col-6">
+                            <div class="">
+                                            <span>
+                                                {{translate('Paid By')}} ({{str_replace('_', ' ',$partial->paid_with)}})</span>
+                                <span>:</span>
+                            </div>
+                        </dt>
+                        <dd class="col-6 text-dark text-right">
+                            {{ \App\CentralLogics\Helpers::set_symbol($partial->paid_amount) }}
+                        </dd>
+                    @endforeach
+                        <?php
+                        $due_amount = 0;
+                        $due_amount = $order->order_partial_payments->first()?->due_amount;
+                        ?>
+                    <dt class="col-6">
+                        <div class="">
+                                            <span>
+                                                {{translate('Due Amount')}}</span>
+                            <span>:</span>
+                        </div>
+                    </dt>
+                    <dd class="col-6 text-dark text-right">
+                        {{ \App\CentralLogics\Helpers::set_symbol($due_amount) }}
+                    </dd>
+                @endif
             </dl>
         </div>
     </div>

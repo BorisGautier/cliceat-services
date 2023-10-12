@@ -2,6 +2,7 @@
 
 namespace App\Model;
 
+use App\Models\OrderPartialPayment;
 use App\User;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -21,7 +22,10 @@ class Order extends Model
         'user_id' => 'integer',
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
-        'delivery_address' => 'array'
+        'delivery_address' => 'array',
+        'table_id' => 'integer',
+        'number_of_people' => 'integer',
+        'table_order_id' => 'integer',
     ];
 
     public function details(): HasMany
@@ -98,5 +102,10 @@ class Order extends Model
     public function transaction(): HasOne
     {
         return $this->hasOne(OrderTransaction::class);
+    }
+
+    public function order_partial_payments(): HasMany
+    {
+        return $this->hasMany(OrderPartialPayment::class)->orderBy('id', 'DESC');
     }
 }

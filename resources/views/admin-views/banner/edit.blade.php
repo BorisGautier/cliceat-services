@@ -22,8 +22,7 @@
 
         <div class="row gx-2 gx-lg-3">
             <div class="col-sm-12 col-lg-12 mb-3 mb-lg-2">
-                <form action="{{route('admin.banner.update',[$banner['id']])}}" method="post"
-                      enctype="multipart/form-data">
+                <form action="{{route('admin.banner.update',[$banner['id']])}}" method="post" enctype="multipart/form-data">
                     @csrf @method('put')
 
                     <div class="card">
@@ -31,37 +30,27 @@
                             <div class="row">
                                 <div class="col-lg-6">
                                     <div class="form-group">
-                                        <label class="input-label">{{translate('title')}}</label>
+                                        <label class="input-label">{{translate('title')}}<span class="text-danger ml-1">*</span></label>
                                         <input type="text" name="title" value="{{$banner['title']}}" class="form-control"
                                             placeholder="{{translate('New banner')}}" required>
                                     </div>
                                     <div class="form-group">
-                                        <label class="input-label">
-                                            {{translate('item_Type')}}
-                                            <span class="input-label-secondary">*</span>
-                                        </label>
+                                        <label class="input-label">{{translate('item_Type')}}<span class="text-danger ml-1">*</span></label>
                                         <select name="item_type" class="custom-select" onchange="show_item(this.value)">
                                             <option value="product" {{$banner['product_id']==null?'':'selected'}}>{{translate('product')}}</option>
                                             <option value="category" {{$banner['category_id']==null?'':'selected'}}>{{translate('category')}}</option>
                                         </select>
                                     </div>
-                                    <div class="form-group" id="type-product"
-                                        style="display: {{$banner['product_id']==null?'none':'block'}}">
-                                        <label class="input-label">{{translate('product')}} <span
-                                                class="input-label-secondary">*</span></label>
+                                    <div class="form-group" id="type-product" style="display: {{$banner['product_id']==null?'none':'block'}}">
+                                        <label class="input-label">{{translate('product')}} <span class="text-danger ml-1">*</span></label>
                                         <select name="product_id" class="custom-select">
                                             @foreach($products as $product)
-                                                <option
-                                                    value="{{$product['id']}}" {{$banner['product_id']==$product['id']?'selected':''}}>
-                                                    {{$product['name']}}
-                                                </option>
+                                                <option value="{{$product['id']}}" {{$banner['product_id']==$product['id']?'selected':''}}>{{$product['name']}}</option>
                                             @endforeach
                                         </select>
                                     </div>
-                                    <div class="form-group" id="type-category"
-                                        style="display: {{$banner['category_id']==null?'none':'block'}}">
-                                        <label class="input-label">{{translate('category')}} <span
-                                                class="input-label-secondary">*</span></label>
+                                    <div class="form-group" id="type-category" style="display: {{$banner['category_id']==null?'none':'block'}}">
+                                        <label class="input-label">{{translate('category')}} <span class="text-danger ml-1">*</span></label>
                                         <select name="category_id" class="form-control js-select2-custom">
                                             @foreach($categories as $category)
                                                 <option value="{{$category['id']}}" {{$banner['category_id']==$category['id']?'selected':''}}>{{$category['name']}}</option>

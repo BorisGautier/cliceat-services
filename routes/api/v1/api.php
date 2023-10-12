@@ -63,6 +63,8 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
     Route::group(['prefix' => 'config'], function () {
         Route::get('/', 'ConfigController@configuration');
         Route::get('table', 'TableConfigController@configuration');
+        Route::get('get-direction-api', 'ConfigController@direction_api');
+
     });
 
     Route::group(['prefix' => 'products', 'middleware' => 'branch_adder'], function () {
@@ -103,19 +105,21 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
         });
 
         Route::group(['prefix' => 'address'], function () {
-            Route::get('list', 'CustomerController@address_list');
-            Route::post('add', 'CustomerController@add_new_address');
-            Route::put('update/{id}', 'CustomerController@update_address');
-            Route::delete('delete', 'CustomerController@delete_address');
+            Route::get('list', 'CustomerController@address_list')->withoutMiddleware(['auth:api', 'is_active']);
+            Route::post('add', 'CustomerController@add_new_address')->withoutMiddleware(['auth:api', 'is_active']);
+            Route::put('update/{id}', 'CustomerController@update_address')->withoutMiddleware(['auth:api', 'is_active']);
+            Route::delete('delete', 'CustomerController@delete_address')->withoutMiddleware(['auth:api', 'is_active']);
         });
 
         Route::group(['prefix' => 'order'], function () {
-            Route::get('list', 'OrderController@get_order_list');
-            Route::get('details', 'OrderController@get_order_details');
-            Route::post('place', 'OrderController@place_order');
-            Route::put('cancel', 'OrderController@cancel_order');
-            Route::get('track', 'OrderController@track_order');
-            Route::put('payment-method', 'OrderController@update_payment_method');
+            Route::get('list', 'OrderController@get_order_list')->withoutMiddleware(['auth:api', 'is_active']);
+            Route::get('details', 'OrderController@get_order_details')->withoutMiddleware(['auth:api', 'is_active']);
+            Route::post('place', 'OrderController@place_order')->withoutMiddleware(['auth:api', 'is_active']);
+            Route::put('cancel', 'OrderController@cancel_order')->withoutMiddleware(['auth:api', 'is_active']);
+            Route::get('track', 'OrderController@track_order')->withoutMiddleware(['auth:api', 'is_active']);
+            Route::put('payment-method', 'OrderController@update_payment_method')->withoutMiddleware(['auth:api', 'is_active']);
+            Route::post('guest-track', 'OrderController@guset_track_order')->withoutMiddleware(['auth:api', 'is_active']);
+            Route::post('details-guest', 'OrderController@get_guest_order_details')->withoutMiddleware(['auth:api', 'is_active']);
         });
         // Chatting
         Route::group(['prefix' => 'message'], function () {
@@ -136,6 +140,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
         Route::post('transfer-point-to-wallet', 'CustomerWalletController@transfer_loyalty_point_to_wallet');
         Route::get('wallet-transactions', 'CustomerWalletController@wallet_transactions');
         Route::get('loyalty-point-transactions', 'LoyaltyPointController@point_transactions');
+        Route::get('bonus/list', 'CustomerWalletController@wallet_bonus_list');
 
     });
 
@@ -143,7 +148,7 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
         Route::get('/', 'BannerController@get_banners');
     });
 
-    Route::group(['prefix' => 'coupon', 'middleware' => 'auth:api'], function () {
+    Route::group(['prefix' => 'coupon'], function () {
         Route::get('list', 'CouponController@list');
         Route::get('apply', 'CouponController@apply');
     });
@@ -178,4 +183,14 @@ Route::group(['namespace' => 'Api\V1', 'middleware' => 'localization'], function
         Route::put('order/status', 'KitchenController@change_status');
         Route::put('update-fcm-token', 'KitchenController@update_fcm_token');
     });
+
+    Route::group(['prefix' => 'guest'], function () {
+        Route::post('/add', 'GuestUserController@guest_store');
+    });
+
+    Route::group(['prefix' => 'offline-payment-method'], function () {
+        Route::get('/list', 'OfflinePaymentMethodController@list');
+    });
+
+
 });

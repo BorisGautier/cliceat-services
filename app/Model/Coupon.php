@@ -37,4 +37,9 @@ class Coupon extends Model
     {
         return $query->where(['status' => 1])->where('start_date', '<=', now()->format('Y-m-d'))->where('expire_date', '>=', now()->format('Y-m-d'));
     }
+
+    public function scopeDefault($query)
+    {
+        return $query->where(['coupon_type' => 'default']);
+    }
 }

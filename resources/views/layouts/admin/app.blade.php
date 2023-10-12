@@ -16,6 +16,8 @@
     <!-- CSS Implementing Plugins -->
     <link rel="stylesheet" href="{{asset('assets/admin')}}/css/vendor.min.css">
     <link rel="stylesheet" href="{{asset('assets/admin')}}/vendor/icon-set/style.css">
+    {{--Carousel Slider--}}
+    <link rel="stylesheet" href="{{asset('assets/admin/css/owl.min.css')}}">
     <!-- CSS Front Template -->
     <link rel="stylesheet" href="{{asset('assets/admin')}}/css/theme.minc619.css?v=1.0">
     <link rel="stylesheet" href="{{asset('assets/admin')}}/css/style.css?v=1.0">
@@ -84,6 +86,36 @@
         </div>
     </div>
 
+    <div class="modal fade" id="toggle-status-modal">
+        <div class="modal-dialog status-warning-modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal">
+                        <span aria-hidden="true" class="tio-clear"></span>
+                    </button>
+                </div>
+                <div class="modal-body pb-5 pt-0">
+                    <div class="max-349 mx-auto mb-20">
+                        <div>
+                            <div class="text-center">
+                                <img id="toggle-status-image" alt="" class="mb-20">
+                                <h5 class="modal-title" id="toggle-status-title"></h5>
+                            </div>
+                            <div class="text-center" id="toggle-status-message">
+                            </div>
+                        </div>
+                        <div class="btn--container justify-content-center">
+                            <button type="button" id="toggle-status-ok-button" class="btn btn-primary min-w-120" data-dismiss="modal" onclick="confirmStatusToggle()">{{translate('Ok')}}</button>
+                            <button id="reset_btn" type="reset" class="btn btn-secondary min-w-120" data-dismiss="modal">
+                                {{translate("Cancel")}}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </main>
 <!-- ========== END MAIN CONTENT ========== -->
 
@@ -98,6 +130,7 @@
 <script src="{{asset('assets/admin')}}/js/theme.min.js"></script>
 <script src="{{asset('assets/admin')}}/js/sweet_alert.js"></script>
 <script src="{{asset('assets/admin')}}/js/toastr.js"></script>
+    <script src="{{asset('assets/admin/js/owl.min.js')}}"></script>
 {!! Toastr::message() !!}
 
 @if ($errors->any())
@@ -177,6 +210,7 @@
 
     });
 </script>
+
 
 @stack('script_2')
 <audio id="myAudio">
@@ -394,6 +428,111 @@
 <script>
     $('[data-toggle="tooltip"]').parent('label').addClass('label-has-tooltip')
 </script>
+
+    <script>
+        $('.blinkings').on('mouseover', ()=> $('.blinkings').removeClass('active'))
+        $('.blinkings').addClass('open-shadow')
+        setTimeout(() => {
+            $('.blinkings').removeClass('active')
+        }, 10000);
+        setTimeout(() => {
+            $('.blinkings').removeClass('open-shadow')
+        }, 5000);
+    </script>
+    <script>
+        $(function(){
+            var owl = $('.single-item-slider');
+            owl.owlCarousel({
+                autoplay: false,
+                items:1,
+                onInitialized  : counter,
+                onTranslated : counter,
+                autoHeight: true,
+                dots: true,
+            });
+
+            function counter(event) {
+                var element   = event.target;         // DOM element, in this example .owl-carousel
+                var items     = event.item.count;     // Number of items
+                var item      = event.item.index + 1;     // Position of the current item
+
+                // it loop is true then reset counter from 1
+                if(item > items) {
+                    item = item - items
+                }
+                $('.slide-counter').html(+item+"/"+items)
+            }
+        });
+    </script>
+
+    <script>
+
+        function toogleStatusModal(e, toggle_id, on_image, off_image, on_title, off_title, on_message, off_message) {
+            // console.log($('#'+toggle_id).is(':checked'));
+            e.preventDefault();
+            if ($('#'+toggle_id).is(':checked')) {
+                $('#toggle-status-title').empty().append(on_title);
+                $('#toggle-status-message').empty().append(on_message);
+                $('#toggle-status-image').attr('src', "{{asset('/assets/admin/img/modal')}}/"+on_image);
+                $('#toggle-status-ok-button').attr('toggle-ok-button', toggle_id);
+            } else {
+                $('#toggle-status-title').empty().append(off_title);
+                $('#toggle-status-message').empty().append(off_message);
+                $('#toggle-status-image').attr('src', "{{asset('/assets/admin/img/modal')}}/"+off_image);
+                $('#toggle-status-ok-button').attr('toggle-ok-button', toggle_id);
+            }
+            $('#toggle-status-modal').modal('show');
+        }
+
+        function confirmStatusToggle() {
+
+            var toggle_id = $('#toggle-status-ok-button').attr('toggle-ok-button');
+            if ($('#'+toggle_id).is(':checked')) {
+                $('#'+toggle_id).prop('checked', false);
+                $('#'+toggle_id).val(0);
+            } else {
+                $('#'+toggle_id).prop('checked', true);
+                $('#'+toggle_id).val(1);
+            }
+            // console.log($('#'+toggle_id+'_form'));
+            console.log(toggle_id);
+            $('#'+toggle_id+'_form').submit();
+
+        }
+
+        function checkMailElement(id) {
+            console.log(id);
+            if ($('.'+id).is(':checked')) {
+                $('#'+id).show();
+            } else {
+                $('#'+id).hide();
+            }
+        }
+
+        function change_mail_route(value) {
+            if(value == 'user'){
+                var url= '{{url('/')}}/admin/business-settings/email-setup/'+value+'/new-order';
+            }else if(value == 'dm'){
+                var url= '{{url('/')}}/admin/business-settings/email-setup/'+value+'/registration';
+            }
+            location.href = url;
+        }
+
+
+        function checkedFunc() {
+            $('.switch--custom-label .toggle-switch-input').each( function() {
+                if(this.checked) {
+                    $(this).closest('.switch--custom-label').addClass('checked')
+                }else {
+                    $(this).closest('.switch--custom-label').removeClass('checked')
+                }
+            })
+        }
+        checkedFunc()
+        $('.switch--custom-label .toggle-switch-input').on('change', checkedFunc)
+
+    </script>
+
 
 </body>
 </html>

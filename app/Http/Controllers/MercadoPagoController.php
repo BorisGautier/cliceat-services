@@ -2,44 +2,60 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Contracts\Foundation\Application;
-use Illuminate\Contracts\View\Factory;
-use Illuminate\Contracts\View\View;
-use Illuminate\Http\JsonResponse;
+
+
+use App\Models\PaymentRequest;
+use App\Models\User;
+use App\Traits\Processor;
 use Illuminate\Http\Request;
-use MercadoPago\SDK;
-use MercadoPago\Payment;
+use Illuminate\Support\Facades\Validator;
 use MercadoPago\Payer;
-use App\CentralLogics\Helpers;
+use MercadoPago\Payment;
+use MercadoPago\SDK;
+
 
 class MercadoPagoController extends Controller
 {
-    private $data;
+    use Processor;
 
-    public function __construct()
+    private PaymentRequest $paymentRequest;
+    private $config;
+    private $user;
+
+    public function __construct(PaymentRequest $paymentRequest, User $user)
     {
-        $this->data = Helpers::get_business_settings('mercadopago');
+        $config = $this->payment_config('mercadopago', 'payment_config');
+        if (!is_null($config) && $config->mode == 'live') {
+            $this->config = json_decode($config->live_values);
+        } elseif (!is_null($config) && $config->mode == 'test') {
+            $this->config = json_decode($config->test_values);
+        }
+        $this->paymentRequest = $paymentRequest;
+        $this->user = $user;
     }
 
-    /**
-     * @param Request $request
-     * @return Factory|View|Application
-     */
-    public function index(Request $request): Factory|View|Application
-    {
-        $data = $this->data;
-        $data['order_amount'] = $request['order_amount'];
-        $data['callback'] = $request['callback'];
-        $data['customer_id'] = $request['customer_id'];
 
-        return view('payment-view-marcedo-pogo', compact('data'));
+    public function index(Request $request)
+    {
+        $validator = Validator::make($request->all(), [
+            'payment_id' => 'required|uuid'
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json($this->response_formatter(GATEWAYS_DEFAULT_400, null, $this->error_processor($validator)), 400);
+        }
+
+        $data = $this->paymentRequest::where(['id' => $request['payment_id']])->where(['is_paid' => 0])->first();
+        if (!isset($data)) {
+            return response()->json($this->response_formatter(GATEWAYS_DEFAULT_204), 200);
+        }
+        $config = $this->config;
+        return view('payment-gateway.payment-view-marcedo-pogo', compact('config', 'data'));
     }
 
-    public function make_payment(Request $request): JsonResponse
+    public function make_payment(Request $request)
     {
-        $callback = $request['callback'];
-
-        SDK::setAccessToken($this->data['access_token']);
+        SDK::setAccessToken($this->config->access_token);
         $payment = new Payment();
         $payment->transaction_amount = (float)$request['transactionAmount'];
         $payment->token = $request['token'];
@@ -55,56 +71,29 @@ class MercadoPagoController extends Controller
             "number" => $request['payer']['identification']['number']
         );
         $payment->payer = $payer;
-
         $payment->save();
 
-        $response = array(
-            'status' => $payment->status,
-            'status_detail' => $payment->status_detail,
-            'id' => $payment->id,
-            'callback' => null
-        );
-
-        if ($payment->error) {
-            $response['error'] = $payment->error->message;
-        }
-
-        //token string generate
-        $transaction_reference = $payment->id;
-        $token_string = 'payment_method=mercadopago&&transaction_reference=' . $transaction_reference;
-
         if ($payment->status == 'approved') {
-            //success
-            if ($callback != null) {
-                $response['callback'] = $callback . '/success' . '?token=' . base64_encode($token_string);
-            } else {
-                $response['callback'] = route('payment-success', ['token' => base64_encode($token_string)]);
+            $this->paymentRequest::where(['id' => $request['payment_id']])->update([
+                'payment_method' => 'mercadopago',
+                'is_paid' => 1,
+                'transaction_id' => $payment->id,
+            ]);
+            $data = $this->paymentRequest::where(['id' => $request['payment_id']])->first();
+            if (isset($data) && function_exists($data->success_hook)) {
+                call_user_func($data->success_hook, $data);
             }
-
-
-        } else {
-            //fail
-            if ($callback != null) {
-                $response['callback'] = $callback . '/fail' . '?token=' . base64_encode($token_string);
-            } else {
-                $response['callback'] = route('payment-fail', ['token' => base64_encode($token_string)]);
-            }
+            return $this->payment_response($data,'success');
         }
-        return response()->json($response);
+        $payment_data = $this->paymentRequest::where(['id' => $request['payment_id']])->first();
+        if (isset($payment_data) && function_exists($payment_data->failure_hook)) {
+            call_user_func($payment_data->failure_hook, $payment_data);
+        }
+        return $this->payment_response($payment_data,'fail');
     }
 
-    /**
-     * @param Request $request
-     * @return void
-     */
-    public function get_test_user(Request $request): void
+    public function get_test_user(Request $request)
     {
-        // curl -X POST \
-        // -H "Content-Type: application/json" \
-        // -H 'Authorization: Bearer PROD_ACCESS_TOKEN' \
-        // "https://api.mercadopago.com/users/test_user" \
-        // -d '{"site_id":"MLA"}'
-
         $curl = curl_init();
         curl_setopt($curl, CURLOPT_URL, "https://api.mercadopago.com/users/test_user");
         curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
@@ -112,10 +101,9 @@ class MercadoPagoController extends Controller
         curl_setopt($curl, CURLOPT_POST, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, array(
             'Content-Type: application/json',
-            'Authorization: Bearer ' . $this->data['access_token']
+            'Authorization: Bearer ' . $this->config->access_token
         ));
         curl_setopt($curl, CURLOPT_POSTFIELDS, '{"site_id":"MLA"}');
         $response = curl_exec($curl);
-        //dd($response);
     }
 }

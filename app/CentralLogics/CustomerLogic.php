@@ -4,12 +4,15 @@ namespace App\CentralLogics;
 
 use App\Model\BusinessSetting;
 use App\Model\PointTransitions;
+use App\Model\WalletBonus;
 use App\User;
 use App\Model\WalletTransaction;
+use Brian2694\Toastr\Facades\Toastr;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
 
 class CustomerLogic{
+
     public static function create_wallet_transaction($user_id, float $amount, $transaction_type, $referance)
     {
 
@@ -27,14 +30,11 @@ class CustomerLogic{
         $debit = 0.0;
         $credit = 0.0;
 
-        if(in_array($transaction_type, ['add_fund_by_admin','add_fund','order_refund','loyalty_point', 'referrer']))
+        if(in_array($transaction_type, ['add_fund_by_admin','add_fund','loyalty_point', 'referrer','add_fund_bonus']))
         {
             $credit = $amount;
-            if($transaction_type == 'add_fund')
-            {
-                $wallet_transaction->admin_bonus = $amount * BusinessSetting::where('key','wallet_add_fund_bonus')->first()->value/100;
-            }
-            else if($transaction_type == 'loyalty_point')
+
+            if($transaction_type == 'loyalty_point')
             {
                 $credit = (int)($amount / BusinessSetting::where('key','loyalty_point_exchange_rate')->first()->value);
             }
@@ -51,14 +51,12 @@ class CustomerLogic{
         $wallet_transaction->updated_at = now();
         $user->wallet_balance = $current_balance + $credit - $debit;
 
-        //dd($wallet_transaction);
-
         try{
             DB::beginTransaction();
             $user->save();
             $wallet_transaction->save();
             DB::commit();
-            if(in_array($transaction_type, ['loyalty_point','order_place','add_fund_by_admin', 'referrer'])) return $wallet_transaction;
+            if(in_array($transaction_type, ['loyalty_point','order_place','add_fund_by_admin', 'referrer', 'add_fund', 'add_fund_bonus'])) return $wallet_transaction;
             return true;
         }catch(\Exception $ex)
         {
@@ -196,6 +194,99 @@ class CustomerLogic{
                 'updated_at' => now(),
             ]);
         });
+    }
+
+    public static function add_to_wallet($customer_id, float $amount)
+    {
+        $customer = User::find($customer_id);
+        $fcm_token = $customer ? $customer->cm_firebase_token : '';
+        $bonus_amount = self::add_to_wallet_bonus($customer_id, $amount);
+        $reference = 'add-fund';
+
+        $wallet_transaction = self::create_wallet_transaction($customer_id, $amount, 'add_fund', $reference);
+
+        if ($wallet_transaction) {
+            $local = $customer ? $customer->language_code : 'en';
+            $restaurant_name = Helpers::get_business_settings('restaurant_name');
+            $bonus_value = '';
+
+            if ($bonus_amount > 0){
+                $bonus_transaction = self::create_wallet_transaction($customer_id, $bonus_amount, 'add_fund_bonus', 'add-fund-bonus');
+
+                if ($bonus_transaction){
+                    $bonus_message = Helpers::order_status_update_message(ADD_WALLET_BONUS_MESSAGE);
+
+                    if ($local != 'en'){
+                        $translated_message = BusinessSetting::with('translations')->where(['key' => ADD_WALLET_BONUS_MESSAGE])->first();
+                        if (isset($translated_message->translations)){
+                            foreach ($translated_message->translations as $translation){
+                                if ($local == $translation->locale){
+                                    $bonus_message = $translation->value;
+                                }
+                            }
+                        }
+                    }
+                    $bonus_value = Helpers::text_variable_data_format(value:$bonus_message, user_name: $customer->f_name. ' '. $customer->l_name, restaurant_name: $restaurant_name);
+                }
+            }
+
+            $message = Helpers::order_status_update_message(ADD_WALLET_MESSAGE);
+
+            if ($local != 'en'){
+                $translated_message = BusinessSetting::with('translations')->where(['key' => ADD_WALLET_MESSAGE])->first();
+                if (isset($translated_message->translations)){
+                    foreach ($translated_message->translations as $translation){
+                        if ($local == $translation->locale){
+                            $message = $translation->value;
+                        }
+                    }
+                }
+            }
+            $value = Helpers::text_variable_data_format(value:$message, user_name: $customer->f_name. ' '. $customer->l_name, restaurant_name: $restaurant_name);
+
+            try {
+                if ($value) {
+                    $data = [
+                        'title' => translate('wallet'),
+                        'description' => $bonus_amount > 0 ? Helpers::set_symbol($amount) . ' ' . $value. ', '. Helpers::set_symbol($bonus_amount). ' '. $bonus_value : Helpers::set_symbol($amount) . ' ' . $value,
+                        'order_id' => '',
+                        'image' => '',
+                        'type' => 'order_status',
+                    ];
+                    if (isset($fcm_token)) {
+                        Helpers::send_push_notif_to_device($fcm_token, $data);
+                    }
+                }
+                return true;
+            } catch (\Exception $e) {
+                Toastr::warning(translate('Push notification send failed for Customer!'));
+            }
+        }
+
+        return false;
+
+    }
+
+    public static function add_to_wallet_bonus($customer_id, float $amount)
+    {
+        $bonuses = WalletBonus::active()
+            ->whereDate('start_date', '<=', now())
+            ->whereDate('end_date', '>=', now())
+            ->where('minimum_add_amount', '<=', $amount)
+            ->get();
+
+        $bonuses = $bonuses->where('minimum_add_amount', $bonuses->max('minimum_add_amount'));
+
+        foreach ($bonuses as $key=>$item) {
+            $item->applied_bonus_amount = $item->bonus_type == 'percentage' ? ($amount*$item->bonus_amount)/100 : $item->bonus_amount;
+
+            //max bonus check
+            if($item->bonus_type == 'percentage' && $item->applied_bonus_amount > $item->maximum_bonus_amount) {
+                $item->applied_bonus_amount = $item->maximum_bonus_amount;
+            }
+        }
+
+        return $bonuses->max('applied_bonus_amount') ?? 0;
     }
 
 }

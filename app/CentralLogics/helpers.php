@@ -9,12 +9,14 @@ use App\Model\Currency;
 use App\Model\DMReview;
 use App\Model\Order;
 use App\Model\Product;
+use App\Model\ProductByBranch;
 use App\Model\Review;
 use App\User;
-use Illuminate\Support\Carbon;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 class Helpers
 {
@@ -217,7 +219,7 @@ class Helpers
     public static function get_business_settings($name)
     {
         $config = null;
-        $data = BusinessSetting::where(['key' => $name])->first();
+        $data = \App\Model\BusinessSetting::where(['key' => $name])->first();
         if (isset($data)) {
             $config = json_decode($data['value'], true);
             if (is_null($config)) {
@@ -289,7 +291,7 @@ class Helpers
                 "is_read": 0,
                 "icon" : "new",
                 "sound": "notification",
-                "android_channel_id": "cliceat"
+                "android_channel_id": "efood"
             }
         }';
         $ch = curl_init();
@@ -340,7 +342,7 @@ class Helpers
                     "is_read": 0,
                     "icon" : "new",
                     "sound": "notification",
-                    "android_channel_id": "cliceat"
+                    "android_channel_id": "efood"
                   }
             }';
         } else {
@@ -364,7 +366,7 @@ class Helpers
                     "is_read": 0,
                     "icon" : "new",
                     "sound": "notification",
-                    "android_channel_id": "cliceat"
+                    "android_channel_id": "efood"
                   }
             }';
         }
@@ -486,6 +488,10 @@ class Helpers
             $data = self::get_business_settings('customer_notify_message');
         } elseif ($status == 'customer_notify_message_for_time_change') {
             $data = self::get_business_settings('customer_notify_message_for_time_change');
+        } elseif ($status == 'add_wallet_message') {
+            $data = self::get_business_settings('add_wallet_message');
+        } elseif ($status == 'add_wallet_bonus_message') {
+            $data = self::get_business_settings('add_wallet_bonus_message');
         } else {
             $data['status'] = 0;
             $data['message'] = "";
@@ -819,7 +825,7 @@ class Helpers
 
     public static function remove_invalid_charcaters($str)
     {
-        return str_ireplace(['\'', '"', ';', '<', '>', '?'], ' ', $str);
+        return str_ireplace(['\'', '"', ';', '<', '>'], ' ', $str);
     }
 
     public static function get_delivery_charge($distance)
@@ -966,7 +972,76 @@ class Helpers
         return $ref_code;
     }
 
+    public static function update_daily_product_stock() {
+        $current_day = now()->day;
+        $current_month = now()->month;
+        $products = ProductByBranch::where(['stock_type' => 'daily'])->get();
+        foreach ($products as $product){
+            if ($current_day != $product['updated_at']->day || $current_month != $product['updated_at']->month){
+                $product['sold_quantity'] = 0;
+                $product->save();
+            }
+        }
+        return true;
+    }
 
+    public static function text_variable_data_format($value,$user_name=null,$restaurant_name=null,$delivery_man_name=null,$transaction_id=null,$order_id=null)
+    {
+        $data = $value;
+        if ($value) {
+            if($user_name){
+                $data =  str_replace("{userName}", $user_name, $data);
+            }
+
+            if($restaurant_name){
+                $data =  str_replace("{restaurantName}", $restaurant_name, $data);
+            }
+
+            if($delivery_man_name){
+                $data =  str_replace("{deliveryManName}", $delivery_man_name, $data);
+            }
+
+            if($order_id){
+                $data =  str_replace("{orderId}", $order_id, $data);
+            }
+        }
+        return $data;
+    }
+
+    public static function order_status_message_key($status)
+    {
+        if ($status == 'pending') {
+            $data = 'order_pending_message';
+        } elseif ($status == 'confirmed') {
+            $data = 'order_confirmation_msg';
+        } elseif ($status == 'processing') {
+            $data = 'order_processing_message';
+        } elseif ($status == 'out_for_delivery') {
+            $data = 'out_for_delivery_message';
+        } elseif ($status == 'delivered') {
+            $data = 'order_delivered_message';
+        } elseif ($status == 'delivery_boy_delivered') {
+            $data = 'delivery_boy_delivered_message';
+        } elseif ($status == 'del_assign') {
+            $data = 'delivery_boy_assign_message';
+        } elseif ($status == 'ord_start') {
+            $data = 'delivery_boy_start_message';
+        } elseif ($status == 'returned') {
+            $data = 'returned_message';
+        } elseif ($status == 'failed') {
+            $data = 'failed_message';
+        } elseif ($status == 'canceled') {
+            $data = 'canceled_message';
+        } elseif ($status == 'customer_notify_message') {
+            $data = 'customer_notify_message';
+        } elseif ($status == 'customer_notify_message_for_time_change') {
+            $data = 'customer_notify_message_for_time_change';
+        } else {
+            $data = $status;
+        }
+
+        return $data;
+    }
 
 }
 

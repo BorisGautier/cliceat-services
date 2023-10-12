@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title', translate('Promotional campaign'))
+@section('title', translate('Promotional Campaign'))
 
 @push('css_or_js')
 
@@ -22,24 +22,18 @@
             <div class="card">
                 <div class="card-header flex-between">
                     <div class="">
-                        <h5>{{translate('Promotional campaign table')}}
-                            <span style="color: red; padding: 0 .4375rem;">({{$promotions->total()}})</span>
+                        <h5>{{translate('Promotional Campaign Table')}}
+                            <span class="badge badge-soft-dark rounded-50 fz-12">{{$promotions->total()}}</span>
                         </h5>
                     </div>
                     <div class="d-flex">
-                        <h5 class="pr-3">{{translate('promotion_status')}} : </h5>
+                        <h5 class="pr-3">{{translate('Promotion Status')}}</h5>
                             <label class="switcher">
                                 <input id="31" class="switcher_input" type="checkbox"
                                        onclick="location.href='{{route('admin.promotion.status',[$branch['id'],$branch->branch_promotion_status?0:1])}}'"
                                     {{$branch->branch_promotion_status?'checked':''}}>
                                 <span class="switcher_control"></span>
                             </label>
-                            {{--                        <label class="toggle-switch toggle-switch-sm">--}}
-                            {{--                            <input type="checkbox" class="toggle-switch-input"--}}
-                            {{--                                   onclick="location.href='{{route('admin.promotion.status',[$branch['id'],$branch->branch_promotion_status?0:1])}}'"--}}
-                            {{--                                   class="toggle-switch-input" {{$branch->branch_promotion_status?'checked':''}}>--}}
-                            {{--                            <span class="toggle-switch-label"><span class="toggle-switch-indicator"></span></span>--}}
-                            {{--                        </label>--}}
                     </div>
                     <div class="flex-end">
                         <div class="mx-2">
@@ -64,7 +58,7 @@
                                style="width: 100%">
                             <thead class="thead-light">
                             <tr>
-                                <th>{{translate('SL')}}#</th>
+                                <th>{{translate('SL')}}</th>
                                 <th>{{translate('Promotion type')}}</th>
                                 <th>{{translate('Promotion Name')}}</th>
                             </tr>
@@ -84,7 +78,7 @@
                                             {{$promotion['promotion_name']}}
                                         @else
                                             <div style="height: 100px; width: 100px; overflow-x: hidden;overflow-y: hidden">
-                                                <img src="{{asset('storage/promotion')}}/{{$promotion['promotion_name']}}" style="width: 100px">
+                                                <img class="mx-80px" src="{{asset('storage/promotion')}}/{{$promotion['promotion_name']}}" style="width: 100px">
                                             </div>
                                         @endif
                                     </td>

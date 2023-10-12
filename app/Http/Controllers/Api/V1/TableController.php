@@ -18,6 +18,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\Str;
+use function App\CentralLogics\translate;
 
 class TableController extends Controller
 {
@@ -38,6 +39,9 @@ class TableController extends Controller
      */
     public function list(): JsonResponse
     {
+        //update daily stock
+        Helpers::update_daily_product_stock();
+
         $tables = $this->table->where('is_active', 1)->paginate(Helpers::getPagination());
         return response()->json($tables, 200);
     }
@@ -61,6 +65,9 @@ class TableController extends Controller
         if ($validator->fails()) {
             return response()->json(['errors' => Helpers::error_processor($validator)], 403);
         }
+
+        //update daily stock
+        Helpers::update_daily_product_stock();
 
         try {
             $order = $this->order;
@@ -121,6 +128,14 @@ class TableController extends Controller
 
                 //new variation price calculation
                 $branch_product = $this->product_by_branch->where(['product_id' => $c['product_id'], 'branch_id' => $request['branch_id']])->first();
+
+                //daily and fixed stock quantity validation
+                if($branch_product->stock_type == 'daily' || $branch_product->stock_type == 'fixed' ){
+                    $available_stock = $branch_product->stock - $branch_product->sold_quantity;
+                    if ($available_stock < $c['quantity']){
+                        return response()->json(['errors' => [['code' => 'stock', 'message' => translate('stock limit exceeded')]]], 403);
+                    }
+                }
 
                 $discount_data = [];
 
@@ -203,6 +218,12 @@ class TableController extends Controller
 
                 //update product popularity point
                 $this->product->find($c['product_id'])->increment('popularity_count');
+
+                //daily and fixed stock quantity update
+                if($branch_product->stock_type == 'daily' || $branch_product->stock_type == 'fixed' ){
+                    $branch_product->sold_quantity += $c['quantity'];
+                    $branch_product->save();
+                }
             }
 
             //send notification to kitchen

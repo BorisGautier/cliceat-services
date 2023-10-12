@@ -30,6 +30,9 @@ class DashboardController extends Controller
      */
     public function dashboard(): Renderable
     {
+        //update daily stock
+        Helpers::update_daily_product_stock();
+
         $data = self::order_stats_data();
 
         $from = Carbon::now()->startOfYear()->format('Y-m-d');

@@ -73,6 +73,7 @@
                                     <th>{{translate('product_name')}}</th>
                                     <th>{{translate('selling_price')}}</th>
                                     <th class="text-center">{{translate('total_sale')}}</th>
+                                    <th>{{translate('stock')}}</th>
                                     <th>{{translate('status')}}</th>
                                     <th class="text-center">{{translate('action')}}</th>
                                 </tr>
@@ -100,6 +101,12 @@
                                         <td class="text-center">{{\App\Model\OrderDetail::whereHas('order', function ($q){
                                                     $q->where('order_status', 'delivered');
                                                 })->where('product_id', $product->id)->sum('quantity')}}
+                                        </td>
+                                        <td>
+                                            <div><span class="">{{ translate('Stock Type') }} : {{ ucfirst($product->main_branch_product?->stock_type) }}</span></div>
+                                            @if(isset($product->main_branch_product) && $product->main_branch_product->stock_type != 'unlimited')
+                                                <div><span class="">{{ translate('Stock') }} : {{ $product->main_branch_product->stock - $product->main_branch_product->sold_quantity }}</span></div>
+                                            @endif
                                         </td>
                                         <td>
                                             <div>

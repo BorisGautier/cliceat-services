@@ -27,6 +27,9 @@ class ProductController extends Controller
      */
     public function list(Request $request): Renderable
     {
+        //update daily stock
+        Helpers::update_daily_product_stock();
+
         $query_param = [];
         $search = $request['search'];
 
@@ -42,7 +45,7 @@ class ProductController extends Controller
         } else {
             $query = $this->product;
         }
-        $products = $query->with('product_by_branch')->orderBy('id', 'DESC')->paginate(Helpers::getPagination())->appends($query_param);
+        $products = $query->with(['product_by_branch', 'sub_branch_product'])->orderBy('id', 'DESC')->paginate(Helpers::getPagination())->appends($query_param);
 
         return view('branch-views.product.list', compact('products', 'search'));
     }
@@ -51,10 +54,11 @@ class ProductController extends Controller
      * @param $id
      * @return Renderable
      */
-    public function set_price_index($id): Renderable
+    public function set_price_index($id)
     {
-        $product = $this->product->with(['translations', 'product_by_branch'])->find($id);
-        return view('branch-views.product.set-price', compact('product'));
+        $product = $this->product->with(['translations', 'product_by_branch', 'sub_branch_product'])->find($id);
+        $main_branch_product = $this->product_by_branch->where(['product_id' => $id, 'branch_id' => 1])->first();
+        return view('branch-views.product.set-price', compact('product', 'main_branch_product'));
     }
 
     /**
@@ -68,6 +72,8 @@ class ProductController extends Controller
             'price' => 'required',
             'discount_type' => 'required|in:percent,amount',
             'discount' => 'required',
+            'stock_type' => 'required|in:unlimited,daily,fixed',
+            'product_stock' => 'required_if:stock_type,daily,fixed',
         ], [
             'price.required' => translate('Product price is required!'),
             'discount_type.required' => translate('please select discount type!'),
@@ -133,13 +139,21 @@ class ProductController extends Controller
             'branch_id' => auth('branch')->id(),
             'is_available' => 1,
             'variations' => $variations,
+            'stock_type' => $request->stock_type,
+            'stock' =>  $request->product_stock ?? 0,
         ];
 
-        $this->product_by_branch->updateOrCreate([
+        $updated_product = $this->product_by_branch->updateOrCreate([
             'product_id' => $branch_product['product_id'],
             'branch_id' => auth('branch')->id(),
-        ], $branch_product
+        ],
+            $branch_product
         );
+
+        if ($updated_product->wasChanged('stock_type') || $updated_product->wasChanged('stock')) {
+            $updated_product->sold_quantity = 0;
+            $updated_product->save();
+        }
 
         if (auth('branch')->id() == 1) {
             $product = $this->product->find($branch_product['product_id']);
@@ -163,6 +177,7 @@ class ProductController extends Controller
     {
         $product = $this->product->find($request->id);
         $branch_product = $this->product_by_branch->where(['product_id' => $product->id, 'branch_id' => auth('branch')->id()])->first();
+        $main_branch_product = $this->product_by_branch->where(['product_id' => $request->id, 'branch_id' => 1])->first();
 
         if (isset($branch_product)) {
             $data = [
@@ -171,6 +186,8 @@ class ProductController extends Controller
                 'discount' => $branch_product->discount,
                 'product_id' => $product->id,
                 'is_available' => $request->status,
+                'stock_type' => $branch_product->stock_type,
+                'stock' =>  $branch_product->stock,
             ];
 
             $this->product_by_branch->updateOrCreate([
@@ -198,6 +215,8 @@ class ProductController extends Controller
                         'branch_id' => auth('branch')->id(),
                         'is_available' => $request->status,
                         'variations' => $var,
+                        'stock_type' => $main_branch_product->stock_type,
+                        'stock' =>  $main_branch_product->stock,
                     ];
                 }
             } else {
@@ -209,6 +228,8 @@ class ProductController extends Controller
                     'branch_id' => auth('branch')->id(),
                     'is_available' => $request->status,
                     'variations' => [],
+                    'stock_type' => $main_branch_product->stock_type,
+                    'stock' =>  $main_branch_product->stock,
                 ];
 
             }

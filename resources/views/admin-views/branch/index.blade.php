@@ -1,6 +1,6 @@
 @extends('layouts.admin.app')
 
-@section('title', translate('Add new branch'))
+@section('title', translate('Add New Branch'))
 
 @push('css_or_js')
     <style>
@@ -37,7 +37,7 @@
                         <div class="card-header">
                             <h4 class="mb-0 d-flex gap-2 align-items-center">
                                 <i class="tio-user"></i>
-                                {{translate('branch_Information')}}
+                                {{translate('Branch_Information')}}
                             </h4>
                         </div>
                         <div class="card-body">
@@ -45,13 +45,13 @@
                                 <div class="col-lg-6">
                                     <div class="form-group">
                                         <label class="input-label"
-                                               for="exampleFormControlInput1">{{translate('name')}}</label>
+                                               for="exampleFormControlInput1">{{translate('name')}}<span class="text-danger ml-1">*</span></label>
                                         <input value="{{old('name')}}" type="text" name="name" class="form-control" maxlength="255"
                                                placeholder="{{translate('New branch')}}" required>
                                     </div>
                                     <div class="form-group">
-                                        <label class="input-label" for="">{{translate('address')}}</label>
-                                        <input value="{{old('address')}}" type="text" name="address" class="form-control" placeholder="" required>
+                                        <label class="input-label" for="">{{translate('address')}}<span class="text-danger ml-1">*</span></label>
+                                        <input value="{{old('address')}}" type="text" name="address" class="form-control" placeholder="{{ translate('Enter Address') }}" required>
                                     </div>
                                 </div>
                                 <div class="col-lg-6">
@@ -72,21 +72,21 @@
                                 </div>
                                 <div class="col-lg-4">
                                     <div class="form-group">
-                                        <label class="input-label">{{translate('phone')}}</label>
+                                        <label class="input-label">{{translate('phone')}}<span class="text-danger ml-1">*</span></label>
                                         <input value="{{old('phone')}}" type="tel" name="phone" class="form-control"
                                                placeholder="{{translate('Ex: +098538534')}}" required>
                                     </div>
                                 </div>
                                 <div class="col-lg-4">
                                     <div class="form-group">
-                                        <label class="input-label">{{translate('email')}}</label>
+                                        <label class="input-label">{{translate('email')}}<span class="text-danger ml-1">*</span></label>
                                         <input value="{{old('email')}}" type="email" name="email" class="form-control" maxlength="255"
                                                placeholder="{{translate('EX : example@example.com')}}" required>
                                     </div>
                                 </div>
                                 <div class="col-lg-4">
                                     <div class="form-group">
-                                        <label class="input-label">{{translate('password')}}</label>
+                                        <label class="input-label">{{translate('password')}}<span class="text-danger ml-1">*</span></label>
                                         <div class="input-group input-group-merge">
                                             <input type="password" name="password" class="js-toggle-password form-control form-control input-field" id="password" required
                                                    placeholder="{{translate('Ex: 8+ Characters')}}"
@@ -187,7 +187,7 @@
                                            data-placement="right"
                                            data-original-title="{{ translate('search_your_location_here') }}"
                                            type="text" placeholder="{{ translate('search_here') }}" />
-                                    <div id="location_map_canvas" class="overflow-hidden rounded" style="height: 100%"></div>
+                                    <div id="location_map_canvas" class="overflow-hidden rounded" style="height: 200px"></div>
                                 </div>
 
                             </div>

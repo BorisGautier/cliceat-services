@@ -26,14 +26,14 @@ class AddonController extends Controller
      */
     public function index(): Factory|View|Application
     {
-        $dir = '/var/www/html/Modules';
+        $dir = base_path('Modules/');
         $directories = self::getDirectories($dir);
 
         $addons = [];
         foreach ($directories as $directory) {
-            $sub_dirs = self::getDirectories('/var/www/html/Modules/' . $directory);
+            $sub_dirs = self::getDirectories('Modules/' . $directory);
             if (in_array('Addon', $sub_dirs)) {
-                $addons[] = '/var/www/html/Modules/' . $directory;
+                $addons[] = 'Modules/' . $directory;
             }
         }
         return view('admin-views.system.addon.index', compact('addons'));

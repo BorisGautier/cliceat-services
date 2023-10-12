@@ -9,14 +9,14 @@ trait SystemAddonTrait
      */
     public function get_addons(): array
     {
-        $dir = 'Modules';
+        $dir = '/var/www/html/Modules';
         $directories = self::getDirectories($dir);
 
         $addons = [];
         foreach ($directories as $directory) {
-            $sub_dirs = self::getDirectories('Modules/' . $directory);
+            $sub_dirs = self::getDirectories('/var/www/html/Modules/' . $directory);
             if (in_array('Addon', $sub_dirs)) {
-                $addons[] = 'Modules/' . $directory;
+                $addons[] = '/var/www/html/Modules/' . $directory;
             }
         }
 
@@ -38,13 +38,13 @@ trait SystemAddonTrait
      */
     public function get_addon_admin_routes(): array
     {
-        $dir = 'Modules';
+        $dir = '/var/www/html/Modules';
         $directories = self::getDirectories($dir);
         $addons = [];
         foreach ($directories as $directory) {
-            $sub_dirs = self::getDirectories('Modules/' . $directory);
+            $sub_dirs = self::getDirectories('/var/www/html/Modules/' . $directory);
             if (in_array('Addon', $sub_dirs)) {
-                $addons[] = 'Modules/' . $directory;
+                $addons[] = '/var/www/html/Modules/' . $directory;
             }
         }
 
@@ -64,7 +64,7 @@ trait SystemAddonTrait
      */
     public function get_payment_publish_status(): array
     {
-        $dir = 'Modules'; // Update the directory path to Modules/Gateways
+        $dir = '/var/www/html/Modules'; // Update the directory path to Modules/Gateways
         $directories = self::getDirectories($dir);
         // dd($directories);
         $addons = [];

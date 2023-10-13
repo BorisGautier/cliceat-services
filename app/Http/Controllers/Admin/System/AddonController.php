@@ -60,7 +60,7 @@ class AddonController extends Controller
         $zip = new \ZipArchive();
         if ($zip->open(storage_path('app/' . $tempPath)) === TRUE) {
             // Extract the contents to a directory
-            $extractPath = '/var/www/html/Modules';
+            $extractPath = base_path('Modules/');
             $zip->extractTo($extractPath);
             $zip->close();
             if(File::exists($extractPath.'/'.explode('.', $filename)[0].'/Addon/info.php')){

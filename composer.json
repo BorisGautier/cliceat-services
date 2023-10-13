@@ -71,10 +71,14 @@
             "app/CentralLogics/order.php",
             "app/CentralLogics/sms_module.php",
             "app/CentralLogics/Translation.php",
-            "app/CentralLogics/Constants.php"
+            "app/CentralLogics/Constants.php",
+            "app/Library/Constant.php",
+            "app/Library/Responses.php",
+            "app/CentralLogics/AddFundHook.php"
         ],
         "psr-4": {
-            "App\\": "app/"
+            "App\\": "app/",
+            "Modules\\": "Modules/"
         },
         "classmap": [
             "database/seeds",

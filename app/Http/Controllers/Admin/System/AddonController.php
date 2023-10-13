@@ -26,7 +26,7 @@ class AddonController extends Controller
      */
     public function index(): Factory|View|Application
     {
-        $dir = base_path('Modules/');
+        $dir = '/var/www/html/Modules';
         $directories = self::getDirectories($dir);
 
         $addons = [];

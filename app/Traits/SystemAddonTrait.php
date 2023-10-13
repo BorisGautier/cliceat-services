@@ -9,7 +9,7 @@ trait SystemAddonTrait
      */
     public function get_addons(): array
     {
-        $dir = base_path('Modules/');
+        $dir = '/var/www/html/Modules';
         $directories = self::getDirectories($dir);
 
         $addons = [];
@@ -38,7 +38,7 @@ trait SystemAddonTrait
      */
     public function get_addon_admin_routes(): array
     {
-        $dir = base_path('Modules/');
+        $dir = '/var/www/html/Modules';
         $directories = self::getDirectories($dir);
         $addons = [];
         foreach ($directories as $directory) {
@@ -64,7 +64,7 @@ trait SystemAddonTrait
      */
     public function get_payment_publish_status(): array
     {
-        $dir = base_path('Modules/'); // Update the directory path to Modules/Gateways
+        $dir = '/var/www/html/Modules'; // Update the directory path to Modules/Gateways
         $directories = self::getDirectories($dir);
         // dd($directories);
         $addons = [];

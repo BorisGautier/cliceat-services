@@ -26829,3 +26829,21 @@ a:hover .text-hover-primary {
 .text-006AE5 {
     color: #006ae5;
 }
+.mb-30 {
+    margin-bottom: 30px
+        }
+
+.mt-30 {
+    margin-top: 30px
+}
+
+.btn--primary {
+    color: #fff;
+    background-color: #FC6A57;
+    border-color: #FC6A57;
+}
+
+.custom-radio {
+    display: flex;
+    gap: 10px;
+}

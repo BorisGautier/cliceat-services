@@ -64,7 +64,7 @@ trait SystemAddonTrait
      */
     public function get_payment_publish_status(): array
     {
-        $dir = '/var/www/html/Modules'; // Update the directory path to Modules/Gateways
+        $dir = '/var/www/html/Modules/Gateways'; // Update the directory path to Modules/Gateways
         $directories = self::getDirectories($dir);
         // dd($directories);
         $addons = [];

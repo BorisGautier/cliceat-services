@@ -31,9 +31,9 @@ class AddonController extends Controller
 
         $addons = [];
         foreach ($directories as $directory) {
-            $sub_dirs = self::getDirectories('Modules/' . $directory);
+            $sub_dirs = self::getDirectories('/var/www/html/Modules/' . $directory);
             if (in_array('Addon', $sub_dirs)) {
-                $addons[] = 'Modules/' . $directory;
+                $addons[] = '/var/www/html/Modules/' . $directory;
             }
         }
         return view('admin-views.system.addon.index', compact('addons'));

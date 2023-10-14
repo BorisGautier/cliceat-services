@@ -1,0 +1,284 @@
+    .container {
+        padding: 15px;
+    }
+
+    .row {
+        --bs-gutter-x: 1.5rem;
+        --bs-gutter-y: 0;
+        display: flex;
+        flex-wrap: wrap;
+        margin-top: calc(-1 * var(--bs-gutter-y));
+        margin-right: calc(-.5 * var(--bs-gutter-x));
+        margin-left: calc(-.5 * var(--bs-gutter-x));
+    }
+
+    .form-control {
+        display: block;
+        width: 100%;
+        box-sizing: border-box;
+        padding: 0.375rem 0.75rem;
+        font-size: 1rem;
+        font-weight: 400;
+        line-height: 1.5;
+        color: #212529;
+        background-color: #fff;
+        background-clip: padding-box;
+        border: 1px solid #ced4da;
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        border-radius: 0.25rem;
+        transition: border-color .15s ease-in-out,box-shadow .15s ease-in-out;
+    }
+
+    .select2 {
+        width:100%!important;
+    }
+
+    .select2-container .select2-selection--single {
+    box-sizing: border-box;
+    width: 100%;
+    border: 1px solid #ccc;
+    }
+
+    .d-flex {
+        display: flex!important;
+    }
+
+    .gap-4 {
+        gap: 1.5rem!important;
+    }
+
+    .btn, .wizard .actions ul a {
+        font-size: .75rem;
+        text-transform: uppercase;
+        position: relative;
+        z-index: 1;
+        text-transform: uppercase;
+        line-height: 1;
+        padding: 0.75rem 1.625rem;
+        outline: none;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+    }
+
+    .btn, .wizard .actions ul a, .btn:focus {
+        box-shadow: none!important;
+    }
+
+    .btn--primary, .wizard .actions ul a {
+        background-color: #4153b3;
+        color: #fff
+    }
+
+        .form-floating {
+        position: relative;
+    }
+
+    .form-label {
+        margin-bottom: 0.5rem;
+    }
+    label {
+        display: inline-block;
+    }
+
+    .w-100{
+        width:100%
+    }
+
+    .d-none {
+        display: none;
+    }
+
+
+    .card-header {
+        background-color: var(--white-color);
+        box-shadow: 0 0 0.125rem rgb(65 83 179 / 5%), 0 0.375rem 0.75rem -0.1875rem rgb(65 83 179 / 5%);
+        border-color: transparent;
+    }
+
+    .dropdown-menu, .card {
+        background-color: var(--white-color);
+        border: none;
+    }
+
+    .card {
+        box-shadow: 0 0.625rem 0.8125rem rgb(17 38 146 / 5%);
+    }
+
+    .card-body {
+        flex: 1 1 auto;
+        padding: var(--bs-card-spacer-y) var(--bs-card-spacer-x);
+        color: var(--bs-card-color);
+    }
+
+    .theme-input-style {
+        display: block;
+        inline-size: 100%;
+        padding: 0.5rem 0.625rem;
+        line-height: 1.5;
+        color: var(--title-color);
+        background-color: var(--white-color);
+        background-clip: padding-box;
+        border: 1px solid var(--border-color);
+        -webkit-appearance: none;
+        -moz-appearance: none;
+        appearance: none;
+        border-radius: 0.3125rem;
+        transition: border-color 0.15s ease-in-out;
+        block-size: 2.8125rem;
+    }
+
+    .theme-input-style:focus, .theme-input-style:active {
+    border-color: var(--input-border-color-active);
+    }
+
+    .input-group > .theme-input-style {
+    position: relative;
+    flex: 1 1 auto;
+    width: 1%;
+    min-width: 0;
+    }
+
+    .textarea.form-control,
+    .textarea.theme-input-style {
+        block-size: 5rem;
+    }
+
+    .card-header, .card-body {
+        padding: 1.25rem;
+    }
+
+    .payment-heading {
+        padding: 1.25rem;
+    }
+
+    .card-header:first-child {
+        border-radius: var(--bs-card-inner-border-radius) var(--bs-card-inner-border-radius) 0 0;
+    }
+
+    .mt-30 {
+        -webkit-margin-before: 1.875rem;
+        margin-block-start: 1.875rem;
+    }
+
+    .p-30 {
+        padding: 1.875rem!important;
+    }
+
+    .mb-30 {
+        -webkit-margin-after: 1.875rem;
+        margin-block-end: 1.875rem;
+    }
+
+    .section {
+        padding: 20px;
+        background-color: #f0f0f0;
+        border: 1px solid #ccc;
+    }
+
+    .col-md-6 {
+        width: 50%;
+        float: left;
+        box-sizing: border-box;
+        padding: 15px;
+    }
+
+    .custom-radio {
+        display: inline-block;
+        margin-right: 30px;
+    }
+
+    .d-none {
+        display: none;
+    }
+
+    .initial-24 {
+        height: 100px;
+        width: 100px;
+        border: 1px solid #99a7ba;
+        -o-object-fit: cover;
+        object-fit: cover;
+        border-radius: 5px;
+    }
+
+    .custom-file-input {
+        position: relative;
+        z-index: 2;
+        width: 100%;
+        height: calc(1.6em + 1.21875rem);
+        margin: 0;
+        opacity: 0;
+    }
+
+    .h--45px {
+        height: 45px!important;
+    }
+
+    .custom-file-input:focus ~ .custom-file-label {
+        border-color: rgba(55, 125, 255, 0.4);
+        -webkit-box-shadow: 0 0 10px rgba(55, 125, 255, 0.1);
+        box-shadow: 0 0 10px rgba(55, 125, 255, 0.1);
+    }
+
+    .custom-file-input:disabled ~ .custom-file-label,
+    .custom-file-input[disabled] ~ .custom-file-label {
+        background-color: #f8fafd;
+    }
+
+    .custom-file-input:lang(en) ~ .custom-file-label::after {
+        content: "Browse";
+    }
+
+    .custom-file-input ~ .custom-file-label[data-browse]::after {
+        content: attr(data-browse);
+    }
+
+    .custom-file-label {
+        position: absolute;
+        top: 0;
+        inset-inline-end: 0;
+        inset-inline-start: 0;
+        z-index: 1;
+        height: calc(1.6em + 1.21875rem);
+        padding: 0.54688rem 0.875rem;
+        font-weight: 400;
+        line-height: 1.6;
+        color: #334257;
+        background-color: #fff;
+        border: 0.0625rem solid #e7eaf3;
+        border-radius: 0.3125rem;
+    }
+
+    .custom-file-label::after {
+        position: absolute;
+        top: 0;
+        inset-inline-end: 0;
+        bottom: 0;
+        z-index: 3;
+        display: block;
+        height: calc(1.6em + 1.09375rem);
+        padding: 0.54688rem 0.875rem;
+        line-height: 1.6;
+        color: #334257;
+        content: "Browse";
+        background-color: transparent;
+        border-inline-start: inherit;
+        border-radius: 0 0.3125rem 0.3125rem 0;
+    }
+
+    .label {
+        display: inline-flex;
+    }
+
+    @media only screen and (max-width: 767px) {
+    .col-md-6 {
+        width: 100%;
+        float: none;
+    }
+}

@@ -37,7 +37,7 @@ class AppServiceProvider extends ServiceProvider
             URL::forceScheme('https');
         }
         //for system addon
-        Config::set('addon_admin_routes',$this->get_addon_admin_routes());
+       Config::set('addon_admin_routes',$this->get_addon_admin_routes());
         Config::set('get_payment_publish_status',$this->get_payment_publish_status());
 
         try {

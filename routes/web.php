@@ -12,6 +12,7 @@ use App\Http\Controllers\PaymobController;
 use App\Http\Controllers\FlutterwaveController;
 use App\Http\Controllers\BkashPaymentController;
 use App\Http\Controllers\MercadoPagoController;
+use App\Http\Controllers\MomoPayController;
 
 
 /**
@@ -122,6 +123,14 @@ if (!$is_published) {
             // Refund Routes for bKash
             // Route::get('refund', 'BkashRefundController@index')->name('bkash-refund');
             // Route::post('refund', 'BkashRefundController@refund')->name('bkash-refund');
+        });
+
+        //MTN- MOMO
+         Route::group(['prefix' => 'momo', 'as' => 'momo.'], function () {
+            Route::any('callback', [MomoPayController::class, 'callback'])->name('callback')
+            ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+            Route::any('make-payment', [MomoPayController::class, 'makePayment'])->name('make-payment');
+            Route::any('pay', [MomoPayController::class, 'payment'])->name('payment');
         });
 
         //MERCADOPAGO

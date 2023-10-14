@@ -1,0 +1,34 @@
+
+.alert {
+    padding: 5px;
+    background-color: #f8d7da;
+    color: #721c24;
+    border-color: #f5c6cb;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    display: none;
+  }
+
+  .closebtn {
+    margin-left: 15px;
+    color: #721c24;
+    font-weight: bold;
+    float: right;
+    font-size: 22px;
+    line-height: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+  .closebtn:hover {
+    color: black;
+  }
+.class-1 {
+    margin-bottom: 8px;display: flex;flex-direction: column;align-items: center;
+}
+.class-2 {
+    width: 400px;display: inline-block;
+}
+.w-400px {
+    width:400px
+}

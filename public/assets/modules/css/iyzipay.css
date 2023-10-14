@@ -1,0 +1,15 @@
+
+.container-body {
+    min-height: 100vh;
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.form-control {
+    background-color: #fff;
+    color: #000;
+    block-size: 45px;
+    font-size: 1rem;
+}

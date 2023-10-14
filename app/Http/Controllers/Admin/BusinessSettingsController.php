@@ -294,7 +294,7 @@ class BusinessSettingsController extends Controller
         }
 
         $data_values = Setting::whereIn('settings_type', ['payment_config'])
-            ->whereIn('key_name', ['ssl_commerz','paypal','stripe','razor_pay','senang_pay','paystack','paymob_accept','flutterwave','bkash','mercadopago'])
+            ->whereIn('key_name', ['momo'])
             ->get();
 
         return view('admin-views.business-settings.payment-index',  compact('published_status', 'payment_url', 'data_values'));
@@ -551,7 +551,7 @@ class BusinessSettingsController extends Controller
     public function payment_config_update(Request $request)
     {
         $validation = [
-            'gateway' => 'required|in:ssl_commerz,paypal,stripe,razor_pay,senang_pay,paystack,paymob_accept,flutterwave,bkash,mercadopago',
+            'gateway' => 'required|in:momo,ssl_commerz,paypal,stripe,razor_pay,senang_pay,paystack,paymob_accept,flutterwave,bkash,mercadopago',
             'mode' => 'required|in:live,test'
         ];
 
@@ -626,6 +626,13 @@ class BusinessSettingsController extends Controller
                 'app_secret' => 'required',
                 'username' => 'required',
                 'password' => 'required',
+            ];
+        } elseif ($request['gateway'] == 'momo') {
+            $additional_data = [
+                'status' => 'required|in:1,0',
+                'api_key' => 'required',
+                'api_user' => 'required',
+                'subscription_key' => 'required',
             ];
         }
 
